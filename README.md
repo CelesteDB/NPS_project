@@ -6,6 +6,10 @@ Comments: 32 variabili, però solo 570 osservazioni
 
 ### 2) Global Missing Migrants Dataset  
 https://www.kaggle.com/datasets/nelgiriyewithana/global-missing-migrants-dataset/  
-Comments: 20 variabili, circa 13000 osservazioni
+Comments: 20 variabili, circa 13000 osservazioni  
+
+### 3) Active Satellites in Orbit Around Earth
+https://www.kaggle.com/datasets/ucsusa/active-satellites  
+Comments: 26 variabili e 1400 osservazioni. Possiamo fare survival analysis??
 
 
