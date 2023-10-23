@@ -14,7 +14,11 @@ Comments: 26 variabili e 1400 osservazioni. Possiamo fare survival analysis??
 
 ### 4) Malware Detection in Network Traffic Data  
 https://www.kaggle.com/datasets/agungpambudi/network-malware-detection-connection-analysis  
-Comments: Vanno "studiati" tutti i significati delle variabili  
+Comments: Vanno "studiati" tutti i significati delle variabili 
+
+### 5) WSDM - KKBox's Churn Prediction Challenge
+https://www.kaggle.com/competitions/kkbox-churn-prediction-challenge/overview
+Si potrebbe fare survival analysis, però era una challenge, quindi il dataset è gigante e forse è un po' complicato
 
 
 
