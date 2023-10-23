@@ -10,6 +10,7 @@ Comments: 20 variabili, circa 13000 osservazioni
 
 ### 3) Active Satellites in Orbit Around Earth
 https://www.kaggle.com/datasets/ucsusa/active-satellites  
+MEGLIO QUESTO: https://www.ucsusa.org/resources/satellite-database  
 Comments: 26 variabili e 1400 osservazioni. Possiamo fare survival analysis??  
 
 ### 4) Malware Detection in Network Traffic Data  
