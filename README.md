@@ -1,25 +1,16 @@
-# Ideas for the project  
+# SURVIVAL ANALYSIS TO SUPPORT SATELLITES LIFETIME PREDICTION
 
-### 1) Cancer Data Analysis for Improved Healthcare  
-https://www.kaggle.com/datasets/sophiyakanjirakadan/cancercsv  
-Comments: 32 variabili, però solo 570 osservazioni  
+The data come from UCS Satellite Database, which contains 6718 satellites currently orbiting Earth, and 28 types of data for each satellite.  
 
-### 2) Global Missing Migrants Dataset  
-https://www.kaggle.com/datasets/nelgiriyewithana/global-missing-migrants-dataset/  
-Comments: 20 variabili, circa 13000 osservazioni  
+**Goal:**  
+We aim to identify the factors that determine the operational lifetime of a satellite in order to contextualize the economic and environmental impacts of space missions.  
+We plan to compare the expected lifetime of satellites as indicated by their owners withthe lifetime predicted by our analysis.
 
-### 3) Active Satellites in Orbit Around Earth
-https://www.kaggle.com/datasets/ucsusa/active-satellites  
-MEGLIO QUESTO: https://www.ucsusa.org/resources/satellite-database  
-Comments: 26 variabili e 1400 osservazioni. Possiamo fare survival analysis??  
+**Dataset:**  
+The data come from https://www.ucsusa.org/resources/satellite-database
 
-### 4) Malware Detection in Network Traffic Data  
-https://www.kaggle.com/datasets/agungpambudi/network-malware-detection-connection-analysis  
-Comments: Vanno "studiati" tutti i significati delle variabili 
 
-### 5) WSDM - KKBox's Churn Prediction Challenge
-https://www.kaggle.com/competitions/kkbox-churn-prediction-challenge/overview
-Si potrebbe fare survival analysis, però era una challenge, quindi il dataset è gigante e forse è un po' complicato
+
 
 
 
