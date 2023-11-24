@@ -51,10 +51,9 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
   labs(title = "How many satellites for each purpose?", fill = 'Purpose', x = "", y = " ")
 
 
-x1 = sample(1:60, 359, replace = T)
 
 ############ Expected Life vs Effective life for country
-#x1 <- data$`Effective Lifetime`
+x1 <- data$`Effective Lifetime`
 y1 <- data$`Expected Lifetime`
 Paesi <- data$Country
 
@@ -73,7 +72,7 @@ ggplot(df, aes(x = x1, y = y1, color = Paesi)) +
 
 
 ############ Expected Life vs Effective life for Users
-#x1 <- data$`Effective Lifetime`
+x1 <- data$`Effective Lifetime`
 y1 <- data$`Expected Lifetime`
 Users <- data$Users
 
@@ -92,7 +91,7 @@ ggplot(df, aes(x = x1, y = y1, shape = Users, color = Users)) +
 
 
 ############ Expected Life vs Effective life for Purpose
-#x1 <- data$`Effective Lifetime`
+x1 <- data$`Effective Lifetime`
 y1 <- data$`Expected Lifetime`
 Purpose <- data$Purpose
 
