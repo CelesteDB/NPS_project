@@ -24,7 +24,7 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
   coord_polar("y") +
   theme_minimal() +
   scale_fill_viridis_d()+
-  labs(title = "How many satellites for each country?", fill = "Country")
+  labs(title = "How many satellites for each country?", fill = "Country", x = "", y = " ")
 
 
 ##### Grafico a torta per users
@@ -36,7 +36,7 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
   coord_polar("y") +
   theme_minimal() +
   scale_fill_viridis_d()+
-  labs(title = "How many satellites for each use?", fill = 'Users')
+  labs(title = "How many satellites for each use?", fill = 'Users', x = "", y = " ")
 
 ##### Grafico a torta per Purpose
 
@@ -48,7 +48,7 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
   coord_polar("y") +
   theme_minimal() +
   scale_fill_viridis_d()+
-  labs(title = "How many satellites for each purpose?", fill = 'Purpose')
+  labs(title = "How many satellites for each purpose?", fill = 'Purpose', x = "", y = " ")
 
 
 x1 = sample(1:60, 359, replace = T)
