@@ -13,7 +13,7 @@ setwd("C:/Users/simon/Desktop/Università/V Anno/I Semester/Nonparametric Statis
 Import data:
 ```{r}
 library(readxl)
-data <- read_excel("UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE)
 ```
 
 Nomi colonne:
