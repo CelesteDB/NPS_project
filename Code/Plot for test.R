@@ -120,3 +120,27 @@ png(filename = "GraficoEsempio.png",
     bg = "white")
 print(plot)
 dev.off()
+
+
+######################## satelliti con cartina mondo
+
+df <- as.data.frame(Occorrenze)
+
+# Unisci i dati geografici con le occorrenze
+world_map <- map_data("world")
+merged_data <- merge(world_map, df, by.x = "region", by.y = "Var1", all.x = TRUE)
+merged_data <- merged_data[,c(1:5,7)]
+
+
+
+# Crea il ggplot con geo_map
+ggplot() +
+  geom_map(data = df, map = world_map, aes(map_id = Var1, fill = Freq),
+           color = "white", size = 0.5) +
+  geom_map(data = world_map, map = world_map, aes(map_id = region),
+           color = "black", size = 0.5, fill = NA) +
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  scale_fill_gradient(low = "lightblue", high = "darkblue", name = "Satellites") +
+  theme_minimal() +
+  labs(title = "Where are the satellites in our dataset?")
+
