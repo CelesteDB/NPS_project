@@ -9,7 +9,7 @@ data <- data[Id, ]
 library(png)
 
 # Install required package for generating plot
-install.packages("ggplot2")
+#install.packages("ggplot2")
 library(ggplot2)
 
 ##### Grafico a torta per numero di satelliti in ogni paese 
@@ -76,7 +76,7 @@ x1 <- data$`Effective Lifetime`
 y1 <- data$`Expected Lifetime`
 Users <- data$Users
 
-df <- data.frame(x1,y1,Purpose)
+df <- data.frame(x1,y1,Users)
 
 
 # Crea lo scatterplot
@@ -123,6 +123,8 @@ dev.off()
 
 
 ######################## satelliti con cartina mondo
+
+Occorrenze <- table(data$Country)
 
 df <- as.data.frame(Occorrenze)
 
