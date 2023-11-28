@@ -16,8 +16,17 @@ multinat <- which(paesi == 'Multinational')
 # Usa la funzione countrycode per ottenere il continente
 continente <- countrycode(sourcevar = dataframe_paesi$paese, origin = "country.name", destination = "continent")
 continente[esa] = 'Europe'
-continente[multinat] = 'Multinational
+continente[multinat] = 'Multinational'
 
 data <- cbind(data,Continent = continente)
 save(data, file ="Data_new.Rdata")
 
+install.packages("openxlsx")
+library(openxlsx)
+
+
+# Specifica il percorso del file Excel in cui desideri salvare il dataset
+percorso_file <- "percorso/del/tuo/file/nomefile.xlsx"
+
+# Salva il dataset in Excel
+write.xlsx(data, file = 'Data_Satellites.xlsx', rowNames = FALSE)
