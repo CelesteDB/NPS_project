@@ -1,4 +1,6 @@
 NONPARAMETRIC STAT – PROJECT (21/11/2023)
+
+
 PULIZIA DATASET (dal 21 Novembre al 28 Novembre)
 • Cercare se satellite attivo (1-96 Fede, 97-191 Darvin, 192-288 Cele, 289-382 Simone)
 Se attivo → scrivi censored con data T = 17 novembre 2023 (data fine studio)
@@ -10,6 +12,7 @@ Se non attivo → scrivi retired con data T = data di disposal
 • Mettere numerica dry mass e longitudine SIMONE
 • Calcolo dell’effective lifetime (in anni) (data inizio studio: data primo satellite) SIMONE
 • In Dry mass se ho obs da 1500 a 1900 → metti 1700 SIMONE
+
 TEST NON PARAMETRICI (dal 21 Novembre al 28 Novembre)
 • Vedere quanti satelliti hanno superato la design life e fare grafici tipo pagina 3 del paper
 https://www.researchgate.net/publication/235986741_A_Satellite_Mortality_Study_to_Support_S
@@ -18,3 +21,6 @@ FEDE
 • Permutational one way anova per expected life time dove I gruppi sono i country CELE E DARVIN
 • Permutational one way anova per expected life time dove I gruppi sono i purpose CELE E DARVIN
 • Permutational one way anova per expected life time dove I gruppi sono i users CELE E DARVIN
+
+
+Survival Analysis
