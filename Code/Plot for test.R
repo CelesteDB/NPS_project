@@ -146,3 +146,32 @@ ggplot() +
   theme_minimal() +
   labs(title = "Where are the satellites in our dataset?")
 
+
+
+################### aggiungo colonna continente #############
+library(readxl)
+data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+
+paesi <- data$Country
+
+# Carica il pacchetto
+install.packages("countrycode")
+
+library(countrycode)
+paesi <- c("USA", "United Kingdom", "France", "China", "India")
+# Crea un dataframe di esempio con i paesi
+dataframe_paesi <- data.frame(paese = paesi)
+
+# Usa la funzione countrycode per ottenere il continente
+dataframe_paesi$continente <- countrycode(sourcevar = dataframe_paesi$paese, origin = "iso2c", destination = "continent")
+
+
+
+
+
+
+
+
+
+
+
