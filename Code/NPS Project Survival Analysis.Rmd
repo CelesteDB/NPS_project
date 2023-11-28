@@ -1,0 +1,183 @@
+---
+title: "NPS Project Survival Analysis"
+author: "Simone Ciardulli"
+date: "`r Sys.Date()`"
+output: html_document
+---
+Set wd:
+```{r}
+setwd("C:/Users/simon/OneDrive/Desktop/V Anno/I Semester/Nonparametric Statistics/Project")
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+Import data:
+```{r}
+data <- read_excel("Data_Satellites.xlsx", col_names = TRUE)
+```
+
+Summary:
+```{r}
+summary(data)
+```
+
+Rendi colonne factor:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+```
+
+Group countries by continent:
+```{r}
+continenti <- c("Oceania", "Asia", "Europe", "South America", "North America",
+                "Asia", "Africa", "Europe", "Europe", "Europe",
+                "Asia", "Europe", "Asia", "Europe", "Multinational",
+                "Europe", "Asia", "Europe", "Asia", "Europe",
+                "Europe", "Asia", "Asia", "Middle East", "Europe",
+                "North America")
+
+
+```
+
+Mischia righe
+```{r}
+data <- data[sample(nrow(data)), ]
+```
+
+
+Primo plot con tempi:
+```{r}
+data$ID <- factor(seq(1:nrow(data))) 
+data_subs <- head(data)
+time <- data_subs$'Effective Lifetime'
+
+ggplot(data=data_subs,aes(x=ID,y=time)) + 
+  geom_bar(stat='identity',width=0.2) +
+  geom_point(aes(color=Status,shape=Status),size=6) +
+  coord_flip()
+```
+
+
+```{r}
+head(Surv(time=data$'Effective Lifetime',  # T_i
+          event=data$Status == 'retired') # tell the object which rows have the event
+     )
+```
+
+KM Estimator
+```{r}
+time <- data$'Effective Lifetime'
+fit <- survfit(Surv(time,data$Status == 'retired') ~ 1, data = data)
+```
+
+Summary:
+```{r}
+summary(fit)
+```
+
+```{r}
+kable(head(tidy(fit),20))
+```
+
+Median:
+```{r}
+surv_median(fit)
+```
+
+Rem: not reached
+
+To plot the KM estimator you can use the function plot
+
+```{r}
+plot(fit, conf.int = T, xlab='Time [years]', ylab = 'Survival Probability', col='red',
+     main="Kaplan-Meier Curve for Satellites Survival")
+```
+
+For a better visualization we can use the `ggsurvplot()` function from
+the survminer package:
+
+```{r}
+mydata <- data[, c("Effective Lifetime", "Status")]
+
+time <- mydata$'Effective Lifetime'
+
+# Esegui la funzione survfit con il dataframe corretto
+fit <- survfit(Surv(time = time, event = mydata$Status == 'retired') ~ 1, data = mydata)
+
+# Utilizza ggsurvplot per visualizzare il grafico di Kaplan-Meier
+ggsurvplot(fit,
+           data = mydata,
+           risk.table = TRUE,
+           risk.table.col = "strata",
+           surv.median.line = "hv",
+           ggtheme = theme_bw(),
+           break.time.by = 5,
+           title = "Kaplan-Meier Curve for Satellites Survival")
+
+```
+Cumulative Failure Probability (CFP):
+
+$$CFP(t) = P(T\leq t)$$ 
+so it can be estimated as:
+$$1-S(t)$$
+
+```{r}
+cumulative_incidence <- 1 - fit$surv
+```
+
+CFP plot: (ggsurvplot() function specifying the option fun=‘event’)
+```{r}
+ggsurvplot(fit,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata", # Change risk table color by groups
+           surv.median.line = "hv", # Specify median survival
+           ggtheme = theme_bw(), # Change ggplot2 theme
+           break.time.by=5,
+           fun='event',
+           title="Cumulative Incidence Curve")
+```
+
+Cumulative Hazard
+```{r}
+ggsurvplot(fit,
+           risk.table = TRUE, # Add risk table
+           ggtheme = theme_bw(), # Change ggplot2 theme
+           break.time.by=5,
+           fun='cumhaz',
+           title="Cumulative Hazard Curve for Satellites Survival")
+```
+
+
+
+We construct one curve for each Users, Purpose, Class of orbit:
+```{r}
+fit.Users <- survfit(Surv(time,data$Status == 'retired') ~ Users, data=data)
+ggsurvplot(fit.Users, conf.int = F, risk.table.col = "strata", legend='none')
+```
