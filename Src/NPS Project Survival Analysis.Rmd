@@ -302,4 +302,4 @@ Factors ordered by risk: Earth Observation, Space Science, Communications
 
 
 
-Summary: use Purpose, forse Users, ignore others
+Summary: use Purpose, maybe Users, ignore others
