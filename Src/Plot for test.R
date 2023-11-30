@@ -1,10 +1,6 @@
 library(readxl)
 data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
 
-# Per i grafici tolgo Multinational
-Id <- data$Country!='Multinational'
-data <- data[Id, ]
-
 #install.packages("png")
 library(png)
 
@@ -14,9 +10,9 @@ library(ggplot2)
 
 ##### Grafico a torta per numero di satelliti in ogni paese 
 
-Stati <- unique(data$Country)
+Stati <- unique(data$Continent)
 
-Occorrenze <- table(data$Country)
+Occorrenze <- table(data$Continent)
 df <- as.data.frame(Occorrenze)
 
 ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
@@ -52,10 +48,10 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
 
 
 
-############ Expected Life vs Effective life for country
+############ Expected Life vs Effective life for Continent
 x1 <- data$`Effective Lifetime`
 y1 <- data$`Expected Lifetime`
-Paesi <- data$Country
+Paesi <- data$Continent
 
 df <- data.frame(x1,y1,Paesi)
 
@@ -63,12 +59,12 @@ df <- data.frame(x1,y1,Paesi)
 ggplot(df, aes(x = x1, y = y1, color = Paesi)) +
   geom_point(size = 3) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +
-  scale_colour_viridis_d()+
+  #scale_colour_viridis_d()+
   theme_minimal()+
-  labs(title = "Effective lifetime vs Expected lifetime for country",
+  labs(title = "Effective lifetime vs Expected lifetime for Continent",
        x = "Effective lifetime",
        y = "Expected lifetime",
-       color = "Country") 
+       color = "Continent") 
 
 
 ############ Expected Life vs Effective life for Users
