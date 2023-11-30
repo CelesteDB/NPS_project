@@ -32,7 +32,6 @@ data <- data[-which(data$Purpose == "Technology Development"),]
 ```
 
 
-
 Rendi colonne factor:
 ```{r}
 data$Country <- factor(data$Country, ordered = F)
@@ -60,52 +59,137 @@ print('Status')
 table(data$Status)
 ```
 
-
 Mischia righe
 ```{r}
 data <- data[sample(nrow(data)), ]
 ```
 
 
+Exploration of numerical variables:
+```{r}
+num <- c("Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass")
+data_num <- data[,num]
+
+cor(data_num)
+# Apogee - Period 0.96672436  
+# Perigee - Inclination -0.88628415   
+# Perigee - Period 0.8327784  
+# Period - Inclination -0.73233046  
+# Apogee - Perigee 0.67998408  
+# Apogee - Eccentricity 0.67998408  
+# Apogee - Inclination -0.60232423  
+#Insomma, apogeo, periodo, perigeo, inclinazione, eccentricità
+
+#tieni solo periodo
+
+pairs(data_num)
+```
+
+Longitude of GEO
+Perigee
+Apogee
+Eccentricity
+Inclination
+Period
+Mass
+
+Mass: include it
+```{r}
+plot(data$Mass, data$`Effective Lifetime`, xlab='Mass')
+hist(data$Mass, xlab='Mass', main='Histogram of Mass', prob = TRUE)
+
+summary(data$Mass)
+```
+Period:
+```{r}
+plot(data$Period, data$`Effective Lifetime`, xlab='Period')
+hist(data$Period, xlab='Period', main='Histogram of Period', prob = TRUE)
+
+summary(data$Period)
+```
+Inclination: 
+```{r}
+plot(data$Inclination, data$`Effective Lifetime`, xlab='Inclination')
+hist(data$Inclination, xlab='Inclination', main='Histogram of Inclination', prob = TRUE)
+
+summary(data$Inclination)
+```
+Eccentricity: do not include it. Prova ad inserire il logaritmo nel modello con altre var discretizzate
+```{r}
+plot(data$Eccentricity, data$`Effective Lifetime`, xlab='Eccentricity')
+hist(data$Eccentricity, xlab='Eccentricity', main='Histogram of Eccentricity', prob = TRUE)
+
+summary(data$Eccentricity)
+```
+Apogee: in 3 (0,20,30,Inf)
+```{r}
+plot(data$Apogee, data$`Effective Lifetime`, xlab='Apogee')
+hist(data$Apogee, xlab='Apogee', main='Histogram of Apogee', prob = TRUE)
+
+summary(data$Apogee)
+```
+Perigee: dividi in 3
+```{r}
+plot(data$Perigee, data$`Effective Lifetime`, xlab='Perigee')
+hist(data$Perigee, xlab='Perigee', main='Histogram of Perigee', prob = TRUE)
+
+summary(data$Perigee)
+```
+Longitude of GEO:
+```{r}
+plot(data$`Longitude of GEO`, data$`Effective Lifetime`, xlab='`Longitude of GEO`')
+hist(data$`Longitude of GEO`, xlab='`Longitude of GEO`', main='Histogram of `Longitude of GEO`', prob = TRUE)
+
+summary(data$`Longitude of GEO`)
+```
+
+
+
 Fit the coxph model, keep all numerical variables and only Purpose and Users (due to observation on KM):
+
+
+Massa, periodo discretizzato, longitude of geo, purpose(.mod?)
+
+Discretize period:
+```{r}
+data$Periodcat <- cut(data$Period, breaks=c(0, 1000, Inf), labels=c("short", "long"))
+```
+
+Modify purpose:
+```{r}
+purpose.mod <- data$Purpose
+id <- which(data$Purpose == 'Navigation' | data$Purpose =='Space Science')
+purpose.mod[id] <- 'Earth Observation'
+data$Purpose.mod <- factor(purpose.mod)
+```
+
+
 ```{r}
 time <- data$'Effective Lifetime'
 Status <- data$Status
+# , "Mass", "Longitude of GEO",
+covariates <- c("Purpose.mod",  "Period", "")
 
-covariates <- c("Users", "Purpose", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass")
+cox1 <- coxph(Surv(time, Status == 'retired') ~ strata(Purpose.mod) + Periodcat, data = data[,covariates])
 
-cox.complete <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
-
-summary(cox.complete)
+summary(cox1)
 ```
 
 
 
 Let's remove least significant covariates once at the time.
 
-We remove Continent
-
-```{r}
-covariates <- names(data)[3:12]
-
-cox2 <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
-
-summary(cox2)
-```
 
 
 Let's check model assumptions:
 ```{r}
-test2 <- cox.zph(cox2)
-test2
+test1 <- cox.zph(cox1)
+test1
 ```
 
-We remove Orbit
-
+Plot of scaled schoenfeld residuals:
 ```{r}
-covariates <- names(data)[c(3,4,5:12)]
-
-cox3 <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
-
-summary(cox.no.continent)
+ggcoxdiagnostics(cox1, type = "scaledsch")
 ```
+
+
