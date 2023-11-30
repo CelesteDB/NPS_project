@@ -1,0 +1,111 @@
+---
+title: "NPS Project Cox Model"
+output: html_document
+date: "2023-11-30"
+---
+
+```{r}
+# per lettura dataset se prendi file da github
+library(readxl)
+data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+Summary:
+```{r}
+summary(data)
+```
+Remove Technology Development satellite:
+```{r}
+data <- data[-which(data$Purpose == "Technology Development"),]
+```
+
+
+
+Rendi colonne factor:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+```
+
+
+Mischia righe
+```{r}
+data <- data[sample(nrow(data)), ]
+```
+
+
+Fit the coxph model, keep all numerical variables and only Purpose and Users (due to observation on KM):
+```{r}
+time <- data$'Effective Lifetime'
+Status <- data$Status
+
+covariates <- c("Users", "Purpose", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass")
+
+cox.complete <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
+
+summary(cox.complete)
+```
+
+
+
+Let's remove least significant covariates once at the time.
+
+We remove Continent
+
+```{r}
+covariates <- names(data)[3:12]
+
+cox2 <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
+
+summary(cox2)
+```
+
+
+Let's check model assumptions:
+```{r}
+test2 <- cox.zph(cox2)
+test2
+```
+
+We remove Orbit
+
+```{r}
+covariates <- names(data)[c(3,4,5:12)]
+
+cox3 <- coxph(Surv(time, Status == 'retired') ~ ., data = data[,covariates])
+
+summary(cox.no.continent)
+```

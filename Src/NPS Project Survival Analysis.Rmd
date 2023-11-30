@@ -4,16 +4,12 @@ author: "Simone Ciardulli"
 date: "`r Sys.Date()`"
 output: html_document
 ---
-Set wd:
-```{r}
-setwd("C:/Users/simon/OneDrive/Desktop/V Anno/I Semester/Nonparametric Statistics/Project")
-```
+
 
 ```{r}
 # per lettura dataset se prendi file da github
 library(readxl)
 data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
-
 ```
 
 Libraries:
@@ -28,11 +24,6 @@ library(broom)
 library(tidyr)
 ```
 
-Import data:
-```{r}
-data <- read_excel("Data_Satellites.xlsx", col_names = TRUE)
-```
-
 Summary:
 ```{r}
 summary(data)
@@ -43,6 +34,10 @@ Rendi colonne factor:
 data$Country <- factor(data$Country, ordered = F)
 print('Country')
 table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
 
 data$Users <- factor(data$Users, ordered = F)
 print('Users')
@@ -156,7 +151,9 @@ ggsurvplot(fit, data = data,
            title="Cumulative Hazard Curve for Satellites Survival")
 ```
 
-1) We construct one curve for each Continent:
+
+
+1) We construct one curve for each Continent: -> Difference is not statistically significant
 ```{r}
 fit.Continent <- survfit(Surv(time,Status == 'retired') ~ Continent, data=data)
 ggsurvplot(fit.Continent, data = data,
@@ -168,10 +165,9 @@ ggsurvplot(fit.Continent, data = data,
 ```
 
 Log-rank test:
-
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Continent, data=data)
-log_rank_test
+log_rank_test #p = 0.5
 ```
 
 Hazard ratio:
@@ -182,7 +178,7 @@ hazard_ratio
 
 
 
-2) We construct one curve for each User:
+2) We construct one curve for each User: 
 ```{r}
 fit.Users <- survfit(Surv(time, Status == 'retired') ~ Users, data=data)
 
@@ -216,7 +212,7 @@ hazard_ratio_com_mil #1.104548 -> Commercial is a risk factor wrt Military
 Factors ordered by risk: Government, Commercial, Military
 
 
-3) We construct one curve for each Purpose
+3) We construct one curve for each Purpose -> Difference is statistically significant
 ```{r}
 fit.Purpose <- survfit(Surv(time, Status == 'retired') ~ Purpose, data=data)
 
@@ -303,3 +299,7 @@ hazard_ratio_leo_meo #0
 
 
 Factors ordered by risk: Earth Observation, Space Science, Communications
+
+
+
+Summary: use Purpose, forse Users, ignore others
