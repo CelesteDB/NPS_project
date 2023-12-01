@@ -72,15 +72,47 @@ cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
 
 summary(cox1)
 ```
+````{r}
+id <- which(data$Orbit == 'MEO')
+data$Orbit[id] = 'Elliptical'
+data$Orbit <-factor(data$Orbit)
+```
 
+```{r}
+time <- data$'Effective Lifetime'
+Status <- data$Status
+covariates <- c("Purpose","Orbit","Longitude of GEO","Perigee","Apogee","Eccentricity","Period", "Continent")
+
+
+cox3a <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+
+summary(cox3a)
+
+```
+
+```{r}
+id <- which(data$Purpose == 'Navigation')
+data$Purpose[id] = 'Communications'
+data$Purpose <-factor(data$Purpose)
+```
+
+```{r}
+time <- data$'Effective Lifetime'
+Status <- data$Status
+covariates <- c("Purpose","Orbit","Longitude of GEO","Perigee","Apogee","Eccentricity","Period", "Continent")
+
+cox3b <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+
+summary(cox3b)
+```
 
 Let's check model assumptions:
 ```{r}
-test1 <- cox.zph(cox1)
-test1  ###  non va perchè modello non converge 
+test1 <- cox.zph(cox3b)
+test1  ###  non va 
 ```
 
 Plot of scaled schoenfeld residuals:
 ```{r}
-ggcoxdiagnostics(cox1, type = "scaledsch")
+ggcoxdiagnostics(cox3b, type = "scaledsch")
 ```
