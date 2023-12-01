@@ -1,0 +1,86 @@
+---
+title: "Cox Model - equilibrated dataset"
+output: html_document
+date: "2023-12-01"
+---
+```{r}
+# per lettura dataset se prendi file da github
+library(readxl)
+data <- read_excel("../Dataset/Data_equilibrated.xlsx", col_names = TRUE)
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+Summary:
+```{r}
+summary(data)
+
+```
+Remove Technology Development satellite and Oceania ( già rimossi nel dataset equilibrated )
+
+Rendi colonne factor:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+```
+Mischia righe
+
+```{r}
+data <- data[sample(nrow(data)), ]
+
+```
+
+
+Cox Model
+```{r}
+time <- data$'Effective Lifetime'
+Status <- data$Status
+covariates <- c("Users","Purpose","Orbit","Longitude of GEO","Perigee","Apogee","Eccentricity","Inclination","Period","Mass", "Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+
+summary(cox1)
+```
+
+
+Let's check model assumptions:
+```{r}
+test1 <- cox.zph(cox1)
+test1  ###  non va perchè modello non converge 
+```
+
+Plot of scaled schoenfeld residuals:
+```{r}
+ggcoxdiagnostics(cox1, type = "scaledsch")
+```
