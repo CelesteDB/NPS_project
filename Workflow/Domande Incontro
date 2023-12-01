@@ -2,6 +2,7 @@ Domande incontro Zapiola
 
 
 1) Cosa fare con categorie con una osservazione (es 1 satellite con Purpose Technology Developement, 1 satellite di Africa, 1 satellite di Oceania)
+    ( Vedi pto 1 sotto)
 
 2) Mediana non raggiunta in KM
 
@@ -10,3 +11,12 @@ Domande incontro Zapiola
 4) Discretizzazione variabili numeriche 
 
 5) Ipotesi di indipendenza tra expected lifetime e predicted lifetime verificata o no per fare test? o paired data?
+
+
+######### Problematiche 
+
+1) Il dataset non è equlibrato in primis tra censored e retired e poi per country/purpose
+   Possibile soluzione:
+   - Equilibriamo rispetto status censored (100) e retired 31
+   - Consideriamo continenti invece di country 
+      MA rimane pb Africa/Asia --> se togliamo abbiamo America, Asia, Europa, Multinational(Others (?))
