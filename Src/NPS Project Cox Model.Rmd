@@ -121,14 +121,14 @@ hist(data$Eccentricity, xlab='Eccentricity', main='Histogram of Eccentricity', p
 
 summary(data$Eccentricity)
 ```
-Apogee: in 3 (0,20,30,Inf)
+Apogee
 ```{r}
 plot(data$Apogee, data$`Effective Lifetime`, xlab='Apogee')
 hist(data$Apogee, xlab='Apogee', main='Histogram of Apogee', prob = TRUE)
 
 summary(data$Apogee)
 ```
-Perigee: dividi in 3
+Perigee
 ```{r}
 plot(data$Perigee, data$`Effective Lifetime`, xlab='Perigee')
 hist(data$Perigee, xlab='Perigee', main='Histogram of Perigee', prob = TRUE)
@@ -165,14 +165,6 @@ data$Purpose.mod <- factor(purpose.mod)
 
 
 ```{r}
-time <- data$'Effective Lifetime'
-Status <- data$Status
-# , "Mass", "Longitude of GEO",
-covariates <- c("Purpose.mod",  "Period", "")
-
-cox1 <- coxph(Surv(time, Status == 'retired') ~ strata(Purpose.mod) + Periodcat, data = data[,covariates])
-
-summary(cox1)
 ```
 
 
