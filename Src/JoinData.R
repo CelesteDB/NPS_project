@@ -57,8 +57,8 @@ names(sat.da.agg.a.data1) <- c("Satellite Name" ,    "Country"  ,          "User
 "Period"      ,       "Mass"        ,       "Launch Date"   ,     "Status"        ,     "Final Date"      ,  
 "Effective Lifetime" ,"Expected Lifetime" , "Continent"     ,     "Mass" ) 
 
-sat.da.agg.a.data1<-sat.da.agg.a.data1[,-18]
-sat.da.agg.a.data1<-sat.da.agg.a.data1[,-12]
+sat.da.agg.a.data1<-sat.da.agg.a.data1[,-18] # Rimuovo continent
+sat.da.agg.a.data1<-sat.da.agg.a.data1[,-12] # Rimuovo dry mass
 
 data1<- data1[, names(sat.da.agg.a.data1)]
 data1$Apogee <- as.numeric(data1$Apogee)
