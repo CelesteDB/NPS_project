@@ -241,3 +241,162 @@ write.xlsx(data, percorso_file_excel, rowNames = FALSE)
 
 
 
+
+
+
+
+
+Mettere parte join
+
+
+
+
+
+
+
+
+
+
+Pulizia join:
+```{r}
+# per lettura dataset se prendi file da github
+library(readxl)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+```
+
+
+Summary:
+```{r}
+summary(data)
+```
+
+
+
+
+Sistemazione conflitti Country:
+
+China/France -> China
+India/France -> India
+Japan/Singapore -> Japan
+Poland/UK -> Poland
+```{r}
+data$Country[which(data$Country == "China/France")] <- "China"
+data$Country[which(data$Country == "India/France")] <- "India"
+data$Country[which(data$Country == "Japan/Singapore")] <- "Japan"
+data$Country[which(data$Country == "Poland/UK")] <- "Poland"
+```
+
+Assegnazione Continent a paesi con continent NA, sono India Japan China -> Asia
+```{r}
+data$Country[which(is.na(data$Continent))]
+data$Continent[which(is.na(data$Continent))] <- "Asia"
+```
+
+
+Sistemazione conflitti Users:
+
+Civil/Government -> Civil
+Commercial/Civil -> Commercial
+Government/Civil -> Government
+Government/Commercial -> Government
+Military/Civil -> Military
+```{r}
+data$Users[which(data$Users == "Civil/Government")] <- "Civil"
+data$Users[which(data$Users == "Commercial/Civil")] <- "Commercial"
+data$Users[which(data$Users == "Government/Civil")] <- "Government"
+data$Users[which(data$Users == "Government/Commercial")] <- "Government"
+data$Users[which(data$Users == "Military/Civil")] <- "Military"
+```
+
+
+Sistemazione conflitti Purpose:
+
+Communications/Technology Development -> Communications
+Earth Observation/Technology Development -> Earth Observation
+Earth/Space Observation -> Earth Observation
+```{r}
+data$Purpose[which(data$Purpose == "Communications/Technology Development")] <- "Communications"
+data$Purpose[which(data$Purpose == "Earth Observation/Technology Development")] <- "Earth Observation"
+data$Purpose[which(data$Purpose == "Earth/Space Observation")] <- "Earth Observation"
+```
+
+
+
+Rendi colonne factor:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+```
+
+Numero di NA in ogni colonna
+```{r}
+df <- data.frame()
+
+for (colonna in colnames(data)) {
+    conteggio_na <- sum(is.na(data[[colonna]]))
+    df <- rbind(df, data.frame(Colonna = colonna, Numero_di_NA = conteggio_na))
+}
+
+df
+```
+
+Rimuovi osservazioni con NA in periodo, launch date, mass:
+```{r}
+cols <- c("Period", "Launch Date", "Mass")
+
+data <- data[complete.cases(data[, cols]), ]
+```
+
+
+Rendi POSIXct Final date:
+```{r}
+class(data$`Final Date`)
+
+data$`Final Date` <- as.Date(data$`Final Date`)
+data$`Final Date` <- as.POSIXct(data$`Final Date`)
+
+class(data$`Final Date`)
+```
+
+
+Calcolo effective lifetime:
+```{r}
+data$`Effective Lifetime` <- round(as.numeric(data$`Final Date` - data$`Launch Date`)/365, digit = 2)
+
+# Eliminare satelliti con tempi di vita effettivi negativi
+data<- data[-which(data$`Effective Lifetime` < 0),]
+```
+
+
+Numero di NA in ogni colonna: rimangono solo 218 satelliti senza Expected Lifetime
+```{r}
+df <- data.frame()
+
+for (colonna in colnames(data)) {
+    conteggio_na <- sum(is.na(data[[colonna]]))
+    df <- rbind(df, data.frame(Colonna = colonna, Numero_di_NA = conteggio_na))
+}
+
+df
+```
