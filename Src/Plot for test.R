@@ -1,5 +1,5 @@
 library(readxl)
-data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 
 #install.packages("png")
 library(png)

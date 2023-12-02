@@ -1,6 +1,6 @@
 ################### aggiungo colonna continente #############
 library(readxl)
-data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 
 paesi <- data$Country
 
@@ -29,4 +29,4 @@ library(openxlsx)
 percorso_file <- "percorso/del/tuo/file/nomefile.xlsx"
 
 # Salva il dataset in Excel
-write.xlsx(data, file = 'Data_Satellites.xlsx', rowNames = FALSE)
+write.xlsx(data, file = 'JoinDatasets.xlsx', rowNames = FALSE)
