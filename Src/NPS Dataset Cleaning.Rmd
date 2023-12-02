@@ -1,19 +1,12 @@
 ---
 title: "NPS Dataset Cleaning"
-author: "Simone Ciardulli"
-date: "`r Sys.Date()`"
 output: html_document
 ---
-
-Set wd:
-```{r}
-setwd("C:/Users/simon/Desktop/Università/V Anno/I Semester/Nonparametric Statistics/Project")
-```
 
 Import data:
 ```{r}
 library(readxl)
-data <- read_excel("UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE)
 ```
 
 
@@ -244,91 +237,115 @@ write.xlsx(data, percorso_file_excel, rowNames = FALSE)
 ```
 
 
-
-
-
-
-
 COSTRUZIONE JOIN DATA
 
+Lettura datasets:
 ```{r}
-
 library(readxl)
 types = rep('guess',68)
 types[20] = 'date'
-datainiz <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE, col_types = types )
-data1 <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE, col_types = types)
-data2 <- read.csv("../Dataset/satcat.csv", header = TRUE)
+dataUCS <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE, col_types = types)
+dataSatCat <- read.csv("../Dataset/satcat.csv", header = TRUE)
+```
 
+
+```{r}
 # Trova gli indici in cui gli elementi nei due vettori sono uguali
-id1 <- which(datainiz$`COSPAR Number` %in% data2$OBJECT_ID)
-id2 <- which(data2$OBJECT_ID %in% data1$`COSPAR Number`)
+id1 <- which(datainiz$`COSPAR Number` %in% dataSatCat$OBJECT_ID)
+id2 <- which(dataSatCat$OBJECT_ID %in% dataUCS$`COSPAR Number`)
+```
 
+
+```{r}
 #prendo solo colonne OBJECT_ID e DECAY_DATE
-data2 <- data2[id2,c(2,9)]
+dataSatCat <- dataSatCat[id2,c(2,9)]
 
 #tolgo le osservazioni senza DECAY_DATE
-id <- which(data2$DECAY_DATE == "")
-data2 <- data2[-id,]
+id <- which(dataSatCat$DECAY_DATE == "")
+dataSatCat <- dataSatCat[-id,]
 
 #ricalcolo indice in cui gli elementi nei due vettori sono uguali
-id1 <- which(data1$`COSPAR Number` %in% data2$OBJECT_ID)
+id1 <- which(dataUCS$`COSPAR Number` %in% dataSatCat$OBJECT_ID)
+```
 
-
+Tolgo colonne utili da dataset UCS
+```{r}
 columns_to_remove <- c("Name of Satellite, Alternate Names", "Country/Org of UN Registry", "Operator/Owner", "Detailed Purpose", "Type of Orbit", "Contractor", "Launch Site", "Launch Vehicle", "COSPAR Number", "NORAD Number", "Comments", "...32", "Source Used for Orbital Data", "Source...34", "Source...35", "Source...36", "Source...37", "Source...38", "Source...39", "Source...40")
 
-#tolgo colonne inutili
-data1 <- data1[, -c(which(names(data1) %in% columns_to_remove), 41:68)]
-data1 <- data1[, -c(17:24)]
+dataUCS <- dataUCS[, -c(which(names(dataUCS) %in% columns_to_remove), 41:68)]
+dataUCS <- dataUCS[, -c(17:24)]
+```
 
-# per i satelliti in comune inserisco nella Disposal Date le Decay_Date del sat
-data1$`Disposal Date` <- vector("character", length = nrow(data1))
-data1$`Disposal Date`[id1] <- data2$DECAY_DATE
+Per i satelliti in comune inserisco nella Disposal Date le Decay_Date del satellite prese dal dataset SatCat
+```{r}
+dataUCS$`Disposal Date` <- vector("character", length = nrow(dataUCS))
+dataUCS$`Disposal Date`[id1] <- dataSatCat$DECAY_DATE
+```
 
-id <- which(data1$`Disposal Date` == "")
+Tolgo da dataset UCS i satelliti senza disposal date
+```{r}
+id <- which(dataUCS$`Disposal Date` == "")
 # dataset con disposal date 
-data1 <- data1[-id,]
+dataUCS <- dataUCS[-id,]
+```
 
+Adesso voglio unire i satelliti presenti in dataUCS con quelli che avevamo ottenuto dal dataset precedente.
+Per fare ciò devo modificare le variabili in modo che siano uguali tra i due datasets. (Ad esempio devo recuperare la lauch mass che precedentemente 
+avevamo tolto)
+```{r}
 # prendo dataset aggiustato precedentemente 
-datanostro <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+data_prec <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
 
-id <- which(data1$`Current Official Name of Satellite` %in% datanostro$`Satellite Name`)
+# controllo satelliti in comune ( per capire che satelliti devo aggiungere)
+id <- which(dataUCS$`Current Official Name of Satellite` %in% data_prec$`Satellite Name`)
 
-data1$`Dry Mass (kg.)` <- as.numeric(data1$`Dry Mass (kg.)`)
-data1$`Longitude of GEO (degrees)` <- as.numeric(data1$`Longitude of GEO (degrees)`)
-columns_to_remove <- c("Power (watts)", "Dry Mass (kg.)")  # TOGLIAMO DRY MASS e power
-data1 <- data1[, -which(names(data1) %in% columns_to_remove)]
+# aggiusto variabili
+dataUCS$`Dry Mass (kg.)` <- as.numeric(dataUCS$`Dry Mass (kg.)`)
+dataUCS$`Longitude of GEO (degrees)` <- as.numeric(dataUCS$`Longitude of GEO (degrees)`)
+# tolgo dry mass e power
+columns_to_remove <- c("Power (watts)", "Dry Mass (kg.)") 
+dataUCS <- dataUCS[, -which(names(dataUCS) %in% columns_to_remove)]
 #aggiungo status e effective lifetime
-data1$Status <- 'retired'
-data1$`Effective Lifetime` <- vector("character", length = nrow(data1))
-
-# creo subset del dataset (satelliti dal sat da aggiungere a data1)
-sat.da.agg.a.data1 <- datanostro[-id,] 
-id1 <- which(sat.da.agg.a.data1$`Satellite Name` %in% datainiz$`Current Official Name of Satellite`)
-# aggiungo launch mass
-sat.da.agg.a.data1$'Lunch Mass kg(.)' <- vector("character", length = nrow(sat.da.agg.a.data1))
-sat.da.agg.a.data1$`Lunch Mass kg(.)` <- datainiz$`Launch Mass (kg.)`[id1]
+dataUCS$Status <- 'retired'
+dataUCS$`Effective Lifetime` <- vector("character", length = nrow(dataUCS))
+```
 
 
-names(data1) <- c("Satellite Name", "Country", "Users", "Purpose", "Orbit", "Longitude of GEO","Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass", "Launch Date","Expected Lifetime",  "Final Date", "Status", "Effective Lifetime")
-names(sat.da.agg.a.data1) <- c("Satellite Name" ,    "Country"  ,          "Users"   ,           "Purpose"   ,         "Orbit"     ,        
+```{r}
+# creo subset del dataset (satelliti dal sat da aggiungere a dataUCS)
+sat.da.agg.a.dataUCS <- data_prec[-id,] 
+
+# recupero Launch mass dei satelliti che non la hanno ( quelli che derivano dal nostro dataset modificato precedentemente)
+id1 <- which(sat.da.agg.a.dataUCS$`Satellite Name` %in% data_prec$`Current Official Name of Satellite`)
+data <- read_excel("../Dataset/UCS-Satellite-Database-1-1-2023.xlsx", col_names = TRUE, col_types = types )
+sat.da.agg.a.dataUCS$'Lunch Mass kg(.)' <- vector("character", length = nrow(sat.da.agg.a.dataUCS))
+sat.da.agg.a.dataUCS$`Lunch Mass kg(.)` <- data_prec$`Launch Mass (kg.)`[id1]
+```
+
+
+```{r}
+# sistemo i nomi delle colonne in modo che siano uguali ( sia in nome che come variabili considerati)
+names(dataUCS) <- c("Satellite Name", "Country", "Users", "Purpose", "Orbit", "Longitude of GEO","Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass", "Launch Date","Expected Lifetime",  "Final Date", "Status", "Effective Lifetime")
+names(sat.da.agg.a.dataUCS) <- c("Satellite Name" ,    "Country"  ,          "Users"   ,           "Purpose"   ,         "Orbit"     ,        
  "Longitude of GEO"  , "Perigee"  ,          "Apogee"    ,         "Eccentricity"  ,     "Inclination"  ,     
 "Period"      ,       "Mass"        ,       "Launch Date"   ,     "Status"        ,     "Final Date"      ,  
 "Effective Lifetime" ,"Expected Lifetime" , "Continent"     ,     "Mass" ) 
 
-sat.da.agg.a.data1<-sat.da.agg.a.data1[,-18] # Rimuovo continent
-sat.da.agg.a.data1<-sat.da.agg.a.data1[,-12] # Rimuovo dry mass
+sat.da.agg.a.dataUCS<-sat.da.agg.a.dataUCS[,-18] # Rimuovo continent
+sat.da.agg.a.dataUCS<-sat.da.agg.a.dataUCS[,-12] # Rimuovo dry mass
 
-# rendo uguali i nomi delle colonne 
-data1<- data1[, names(sat.da.agg.a.data1)]
-data1$Apogee <- as.numeric(data1$Apogee)
-#data1$`Launch Date`<-as.Date(data1$`Launch Date`)
-sat.da.agg.a.data1$`Final Date`<-as.character(sat.da.agg.a.data1$`Final Date`)
-data1$`Effective Lifetime`<-as.numeric(data1$`Effective Lifetime`)
+dataUCS<- dataUCS[, names(sat.da.agg.a.dataUCS)]
+dataUCS$Apogee <- as.numeric(dataUCS$Apogee)
+sat.da.agg.a.dataUCS$`Final Date`<-as.character(sat.da.agg.a.dataUCS$`Final Date`)
+dataUCS$`Effective Lifetime`<-as.numeric(dataUCS$`Effective Lifetime`)
+```
+
+Unisco i datasets
+```{r}
 library(dplyr)
 
 #concateno 
-joinData <- bind_rows(sat.da.agg.a.data1,data1)
+joinData <- bind_rows(sat.da.agg.a.dataUCS,dataUCS)
 table(joinData$Status)
 
 # Caricare la libreria
@@ -551,11 +568,25 @@ id=which(data$Purpose=="Technology Demonstration")
 data$Purpose[id]="Technology Development"
 data$Purpose <- droplevels(data$Purpose)
 
+#aggrego "Space Observation" in "Space Science"
+id=which(data$Purpose=="Space Observation")
+data$Purpose[id]="Space Science"
+data$Purpose <- droplevels(data$Purpose)
+
+
 table(data$Purpose)
 
 
 #VARIABILE CONTINENT
 table(data$Continent)
 
+```
+
+Salvo dataset finale
+```{r}
+# Salva il dataset in Excel
+library(openxlsx)
+
+write.xlsx(data, file = 'JoinDatasets.xlsx', rowNames = FALSE)
 ```
 

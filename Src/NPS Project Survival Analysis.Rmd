@@ -9,7 +9,7 @@ output: html_document
 ```{r}
 # per lettura dataset se prendi file da github
 library(readxl)
-data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 ```
 
 Libraries:

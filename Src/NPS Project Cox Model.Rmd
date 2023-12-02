@@ -7,7 +7,7 @@ date: "2023-11-30"
 ```{r}
 # per lettura dataset se prendi file da github
 library(readxl)
-data <- read_excel("../Dataset/Data_Satellites.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 ```
 
 Libraries:
@@ -165,19 +165,116 @@ data$Purpose.mod <- factor(purpose.mod)
 
 
 ```{r}
+time <- data$'Effective Lifetime'
+Status <- data$Status
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
 ```
 
 
 
 Let's remove least significant covariates once at the time.
+```{r}
+data$Purpose[which(data$Purpose == "Technology Development" )] = "Communications"
+data$Purpose <- factor(data$Purpose)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+```{r}
+data$Purpose[which(data$Purpose == "Navigation" )] = "Communications"
+data$Purpose <- factor(data$Purpose)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+```{r}
+data$Orbit[which(data$Orbit == "MEO" )] = "Elliptical"
+data$Orbit <- factor(data$Orbit)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+
+```{r}
+data$Users[which(data$Users == "Military" )] = "Civil"
+data$Users <- factor(data$Users)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Inclination", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
+
+```{r}
+data$Purpose[which(data$Purpose == "Earth Observation" )] = "Communications"
+data$Purpose <- factor(data$Purpose)
+```
+
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = data[,covariates])
+summary(cox1)
+```
 
 
 
-Let's check model assumptions:
 ```{r}
 test1 <- cox.zph(cox1)
 test1
 ```
+```{r}
+covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Period","Mass","Continent")
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ Users + Purpose + strata(Orbit) + Perigee + Apogee + Period
+              + data$`Longitude of GEO` + Mass + Continent, data = data)
+summary(cox1)
+```
+
+```{r}
+test1 <- cox.zph(cox1)
+test1
+```
+
 
 Plot of scaled schoenfeld residuals:
 ```{r}
