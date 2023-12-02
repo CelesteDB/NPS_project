@@ -10,12 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #install.packages("openxlsx")
-library("openxlsx")
-library(readxl)
-data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+#library("openxlsx")
+#library(readxl)
+#data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+
+
 data=data[sample(nrow(data)),] 
 head(data)
 dim(data)
+
+#tolgo le osservazioni senza expected lifetime
+id=which(is.na(data$`Expected Lifetime`))
+data=data[-id,]
 
 B = 1e3
 seed = 26111992
@@ -60,7 +66,7 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0.013
+p_val #0.006
 ```
 
 There is significant difference on the expected lifetime between continents.
@@ -158,7 +164,7 @@ There is significant difference on the expected lifetime between users.
 PERMUTATIONAL TWO-WAYS ANOVA EXP-LIFETIME -\> CONTINENT-PURPOSE
 
 ```{r}
-summary.aov(aov(explife ~ continent + purpose + continent:purpose)) #interaction is not significant
+summary.aov(aov(explife ~ continent + purpose + continent:purpose)) 
 T0_cp <- summary.aov(aov(explife ~ continent + purpose + continent:purpose))[[1]][3,4]
 T0_cp
 
@@ -178,12 +184,12 @@ for(perm in 1:B){
 sum(T_cp >= T0_cp)/B
 ```
 
-The interaction between continent and purpose is significative (p-value = 0.008)
+The interaction between continent and purpose is significative at a confidence level of alpha=0.05 (p-value = 0.021)
 
 PERMUTATIONAL TWO-WAYS ANOVA EXP-LIFETIME -\> USERS-PURPOSE
 
 ```{r}
-summary.aov(aov(explife ~ users + purpose + users:purpose)) #interaction is not significant
+summary.aov(aov(explife ~ users + purpose + users:purpose)) 
 T0_cp <- summary.aov(aov(explife ~ users + purpose + users:purpose))[[1]][3,4]
 T0_cp
 
@@ -203,7 +209,7 @@ for(perm in 1:B){
 sum(T_cp >= T0_cp)/B
 ```
 
-The interaction between users and purpose is significative at a confidence level of alpha=0.05 (p-value = 0.02)
+The interaction between users and purpose is significative at a confidence level of alpha=0.05 (p-value = 0.048)
 
 ------------------------------------------------------------------------
 
