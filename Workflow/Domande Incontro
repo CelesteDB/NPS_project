@@ -12,6 +12,10 @@ Domande incontro Zapiola
 
 5) Ipotesi di indipendenza tra expected lifetime e predicted lifetime verificata o no per fare test? o paired data?
 
+6) fare l'anova per la differenza tra expected lifetime e predicted lifetime dà gli stessi risultati di fare dei test 
+per le due distribuzioni in ogni gruppo?
+
+
 
 ######### Problematiche 
 
@@ -20,3 +24,6 @@ Domande incontro Zapiola
    - Equilibriamo rispetto status censored (100) e retired 31
    - Consideriamo continenti invece di country 
       MA rimane pb Africa/Asia --> se togliamo abbiamo America, Asia, Europa, Multinational(Others (?))
+
+2) 13 satelliti con vita minore di 1 anno. Forse molti satelliti per cui la lifetime è dovuta a motivi politici, ecc.. -> varianza troppo alta(?)
+(analisi outliers(?)) 
