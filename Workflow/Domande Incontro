@@ -15,6 +15,11 @@ Domande incontro Zapiola
 6) fare l'anova per la differenza tra expected lifetime e predicted lifetime dà gli stessi risultati di fare dei test 
 per le due distribuzioni in ogni gruppo?
 
+7) Meglio cercare di applicare più cose viste nel corso (tipo regressione sulla lifetime e confronti con la survival,
+robustness, conformal prediction sulla regressione) o approfondire approccio bayesiano?
+
+8) storytelling convincente? ( colloquio con Cappozzo) 
+
 
 
 ######### Problematiche 
@@ -25,5 +30,6 @@ per le due distribuzioni in ogni gruppo?
    - Consideriamo continenti invece di country 
       MA rimane pb Africa/Asia --> se togliamo abbiamo America, Asia, Europa, Multinational(Others (?))
 
-2) 13 satelliti con vita minore di 1 anno. Forse molti satelliti per cui la lifetime è dovuta a motivi politici, ecc.. -> varianza troppo alta(?)
+2) 13 satelliti con vita minore di 1 anno. Forse molti satelliti per cui la lifetime è dovuta a motivi
+politici, ecc.. -> varianza troppo alta(?)
 (analisi outliers(?)) 
