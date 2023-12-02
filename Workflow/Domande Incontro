@@ -17,10 +17,13 @@ per le due distribuzioni in ogni gruppo?
 
 7) come valuto l'anova quantitativamente? intervalli di confidenza bootstrap/permutation(?) 
 
-8) Meglio cercare di applicare più cose viste nel corso (tipo regressione sulla lifetime e confronti con la survival,
+8) nell'anova, come gestire la significatività dell'interazione tra varie covariate? (continente,scopo,uso)
+O manteniamo solo 3 distinte one-way anova?
+
+9) Meglio cercare di applicare più cose viste nel corso (tipo regressione sulla lifetime e confronti con la survival,
 robustness, conformal prediction sulla regressione) o approfondire approccio bayesiano?
 
-9) storytelling convincente? ( colloquio con Cappozzo) 
+10) storytelling convincente? ( colloquio con Cappozzo) 
 
 
 
