@@ -49,9 +49,10 @@ ggplot(df, aes(x = "", y = Occorrenze, fill = Var1)) +
 
 
 ############ Expected Life vs Effective life for Continent
-x1 <- data$`Effective Lifetime`
-y1 <- data$`Expected Lifetime`
-Paesi <- data$Continent
+id <- which(is.na(data$`Expected Lifetime`))
+x1 <- data$`Effective Lifetime`[-id]
+y1 <- data$`Expected Lifetime`[-id]
+Paesi <- data$Continent[-id]
 
 df <- data.frame(x1,y1,Paesi)
 
@@ -68,9 +69,11 @@ ggplot(df, aes(x = x1, y = y1, color = Paesi)) +
 
 
 ############ Expected Life vs Effective life for Users
-x1 <- data$`Effective Lifetime`
-y1 <- data$`Expected Lifetime`
-Users <- data$Users
+id <- which(is.na(data$`Expected Lifetime`))
+x1 <- data$`Effective Lifetime`[-id]
+y1 <- data$`Expected Lifetime`[-id]
+Paesi <- data$Continent[-id]
+Users <- data$Users[-id]
 
 df <- data.frame(x1,y1,Users)
 
@@ -87,9 +90,11 @@ ggplot(df, aes(x = x1, y = y1, shape = Users, color = Users)) +
 
 
 ############ Expected Life vs Effective life for Purpose
-x1 <- data$`Effective Lifetime`
-y1 <- data$`Expected Lifetime`
-Purpose <- data$Purpose
+id <- which(is.na(data$`Expected Lifetime`))
+x1 <- data$`Effective Lifetime`[-id]
+y1 <- data$`Expected Lifetime`[-id]
+Paesi <- data$Continent[-id]
+Purpose <- data$Purpose[-id]
 
 df <- data.frame(x1,y1,Purpose)
 
