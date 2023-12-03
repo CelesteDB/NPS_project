@@ -167,10 +167,10 @@ ggsurvplot(fit.Continent, data = data,
 Log-rank test:
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Continent, data=data)
-log_rank_test #p = 0.5
+log_rank_test #p = 4e-06
 ```
 
-Hazard ratio:
+Hazard ratio: DA RIVEDERE COMBINAZONI
 ```{r}
 hazard_ratio <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
 hazard_ratio
@@ -194,10 +194,10 @@ Log-rank test:
 
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Users, data=data)
-log_rank_test # p = 0.08 
+log_rank_test # p = <2e-16
 ```
 
-Hazard ratio:
+Hazard ratio: DA RIVEDERE
 ```{r}
 hazard_ratio_com_gov <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
 hazard_ratio_com_gov #0.4574647 -> Commercial is a protective factor wrt Government
@@ -228,10 +228,10 @@ Log-rank test:
 
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Purpose, data=data)
-log_rank_test # p= 0.01 
+log_rank_test # p < 2e-16 
 ```
 
-Hazard ratio:
+Hazard ratio: DA RIVEDERE
 ```{r}
 hazard_ratio_com_eo <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
 hazard_ratio_com_eo #0.3114461 -> Communications is a protective factor wrt Earth Observation
@@ -273,10 +273,10 @@ Log-rank test:
 
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Orbit, data=data)
-log_rank_test # p = 0.2
+log_rank_test # p < 2e-16
 ```
 
-Hazard ratio:
+Hazard ratio: DA RIVEDERE
 ```{r}
 hazard_ratio_ell_geo <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
 hazard_ratio_ell_geo #0.5000046 -> Earth Observation is a risk factor wrt Space Science
