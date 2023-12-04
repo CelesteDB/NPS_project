@@ -1,0 +1,6 @@
+https://glmnet.stanford.edu/articles/Coxnet.html
+
+
+
+Spunti
+https://stats.stackexchange.com/questions/248935/correlated-variables-in-cox-model-which-one-is-best

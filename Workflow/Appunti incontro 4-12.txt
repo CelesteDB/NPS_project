@@ -1,0 +1,18 @@
+1) Africa/Oceania -> Log rank e magari accorpare 
+2) Non accorpare sottoclassi ma crea dummies 
+3) Togliere covariate altamente correlate ( DA VEDERE POI -> COX MODEL MULTICOLLINAERITY)
+3)  Ok, 1)penalized cox model /  2)strata 
+4)  Varianza alta -> Conformal predicition bounds sui residui del modello ( sull’esponente dl modello di cox)
+5) Approccio bayesiana -> carino ma perché?
+6) Regressione yi survival – yi dichiarata per devere su quali covariate si mente di più. Test ?? (Media dei residui deve essere zero)
+7) Motivare ogni cosa: start up che deve scegliere dove lanciare satellite
+8) Anomaly detection (??)
+9) Mass da discretizzare ( o altre variabili che sembrano categoriche)
+
+
+SPUNTI PER CONFROMAL PREDICTION:
+- https://github.com/zhimeir/cfsurvival
+- Conformalized survival analysis:
+   1) https://academic.oup.com/jrsssb/article/85/1/24/7008653
+   2) https://arxiv.org/abs/2103.09763 
+

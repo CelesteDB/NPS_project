@@ -258,9 +258,7 @@ summary(cox1)
 
 
 
-```{r}
-test1 <- cox.zph(cox1)
-test1
+,
 ```
 ```{r}
 covariates <- c("Users", "Purpose", "Orbit", "Longitude of GEO", "Perigee", "Apogee", "Period","Mass","Continent")
