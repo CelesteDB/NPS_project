@@ -12,9 +12,6 @@ Domande incontro Zapiola
 
 5) Ipotesi di indipendenza tra expected lifetime e predicted lifetime verificata o no per fare test? o paired data?
 
-6) fare l'anova per la differenza tra expected lifetime e predicted lifetime dà gli stessi risultati di fare dei test 
-per le due distribuzioni in ogni gruppo?
-
 7) come valuto l'anova quantitativamente? intervalli di confidenza bootstrap/permutation(?) 
 
 8) nell'anova, come gestire la significatività dell'interazione tra varie covariate? (continente,scopo,uso)
@@ -25,7 +22,9 @@ robustness, conformal prediction sulla regressione) o approfondire approccio bay
 
 10) storytelling convincente? ( colloquio con Cappozzo) 
 
+11) outlier detection
 
+12) accorpamento livelli nel modello 
 
 
 ######### Problematiche 
