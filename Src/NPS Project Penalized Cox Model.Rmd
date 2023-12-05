@@ -140,6 +140,8 @@ lambda.grid <- 10^seq(2, -5 ,length = 100)
 # alpha = 0 per la penalizzazione L1 (Lasso)
 cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 1, lambda = lambda.grid)
 
+# PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
+
 print(cox_model)
 
 bestlambda <- cox_model$lambda.min # con lasso lambda è quasi zero
