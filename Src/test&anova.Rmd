@@ -411,7 +411,7 @@ diff <- t1-t2
 test1 <- function(diff, delta.0, B = 1000) {
   
   data_trans <- diff - delta.0
-  T0 <- mean(data_trans)*mean(data_trans)
+  T0 <- abs(mean(data_trans)) # statistic T=abs(mean(diff-delta.0))  (univariate case) 
   T_perm <- numeric(B)
   n1 <- length(diff)
   p <-1 
@@ -432,7 +432,7 @@ test1 <- function(diff, delta.0, B = 1000) {
     # obs: exchanging data within couples means changing the sign of the difference
     signs.perm <- rbinom(n1, 1, 0.5)*2 - 1
     data_trans_perm <- data_trans * signs.perm
-    T_perm[perm] <- mean(data_trans_perm)*mean(data_trans_perm)
+    T_perm[perm] <- abs(mean(data_trans_perm)) 
     
     # diff_perm <- diff * matrix(signs.perm,nrow=n1,ncol=p,byrow=FALSE)
     # diff.mean_perm <- mean(diff_perm)
