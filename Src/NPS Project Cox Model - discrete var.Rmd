@@ -1,0 +1,685 @@
+---
+title: "NPS Project Cox Model - discretize var"
+output: html_document
+date: "2023-12-05"
+---
+
+
+```{r}
+library(readxl)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+
+Summary:
+```{r}
+summary(data)
+```
+
+Rendi colonne factor:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+```
+
+Mischia righe
+```{r}
+data <- data[sample(nrow(data)), ]
+```
+
+Creo dummy
+Creo variabili dummy
+```{r}
+#install.packages("fastDummies")
+library(fastDummies)
+
+# USERS : Levels: Civil Commercial Government Military
+
+dummy_data <- dummy_cols(data, select_columns = "Users", remove_first_dummy = TRUE)
+
+# PURPOSE : Levels: Communications Earth Observation Navigation Space Science Technology Development
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Purpose", remove_first_dummy = TRUE)
+
+
+# ORBIT : Levels: Elliptical GEO LEO MEO
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Orbit", remove_first_dummy = TRUE)
+
+
+# CONTINENT: Levels: Africa Americas Asia Europe Multinational Oceania
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Continent", remove_first_dummy = TRUE)
+```
+
+
+Exploration of numerical variables:
+```{r}
+num <- c("Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass")
+data_num <- data[,num]
+
+cor(data_num)
+# Apogee - Period 0.96672436  
+# Perigee - Inclination -0.88628415   
+# Perigee - Period 0.8327784  
+# Period - Inclination -0.73233046  
+# Apogee - Perigee 0.67998408  
+# Apogee - Eccentricity 0.67998408  
+# Apogee - Inclination -0.60232423  
+
+pairs(data_num)
+```
+Mass: include it
+```{r}
+plot(data$Mass, data$`Effective Lifetime`, xlab='Mass')
+hist(data$Mass, xlab='Mass', main='Histogram of Mass', prob = TRUE)
+
+summary(data$Mass)
+```
+
+Discretiziamo la massa
+
+```{r}
+Massa.disc <- cut(data$Mass, breaks=c(0, 1000, Inf), labels=c("light", "heavy"))
+dummy_data$Mass.disc <- Massa.disc
+
+```
+
+
+Period:
+```{r}
+plot(data$Period, data$`Effective Lifetime`, xlab='Period')
+hist(data$Period, xlab='Period', main='Histogram of Period', prob = TRUE)
+
+summary(data$Period)
+```
+
+Discretiziamo il periodo
+
+```{r}
+Per.disc <- cut(data$Period, breaks=c(0, 500, 1000, Inf), labels=c("short", "medium", "long"))
+dummy_data$Per.disc <- Per.disc
+
+```
+
+
+Inclination: 
+```{r}
+plot(data$Inclination, data$`Effective Lifetime`, xlab='Inclination')
+hist(data$Inclination, xlab='Inclination', main='Histogram of Inclination', prob = TRUE)
+
+summary(data$Inclination)
+```
+Discretiziamo l'inclination
+
+```{r}
+Inc.disc <- cut(data$Inclination, breaks=c(-Inf, 40, 70, Inf), labels=c("low", "medium", "high"))
+dummy_data$Inc.disc <- Inc.disc
+
+```
+
+
+Eccentricity: ( Non faccio nulla, non è significativa)
+```{r}
+plot(data$Eccentricity, data$`Effective Lifetime`, xlab='Eccentricity')
+hist(data$Eccentricity, xlab='Eccentricity', main='Histogram of Eccentricity', prob = TRUE)
+
+summary(data$Eccentricity)
+```
+Apogee
+```{r}
+plot(data$Apogee, data$`Effective Lifetime`, xlab='Apogee')
+hist(data$Apogee, xlab='Apogee', main='Histogram of Apogee', prob = TRUE)
+
+summary(data$Apogee)
+```
+Discretiziamo Apogeo
+
+```{r}
+Ap.disc <- cut(data$Apogee, breaks=c(0, 25000, Inf), labels=c("low", "high"))
+dummy_data$Ap.disc <- Ap.disc
+
+```
+
+
+Perigee
+```{r}
+plot(data$Perigee, data$`Effective Lifetime`, xlab='Perigee')
+hist(data$Perigee, xlab='Perigee', main='Histogram of Perigee', prob = TRUE)
+
+summary(data$Perigee)
+```
+
+Discretiziamo Perigee
+
+```{r}
+Pe.disc <- cut(data$Perigee, breaks=c(0, 5000, 25000, Inf), labels=c("low","medium","high"))
+dummy_data$Pe.disc <- Pe.disc
+
+```
+
+
+Longitude of GEO:
+```{r}
+plot(data$`Longitude of GEO`, data$`Effective Lifetime`, xlab='`Longitude of GEO`')
+hist(data$`Longitude of GEO`, xlab='`Longitude of GEO`', main='Histogram of `Longitude of GEO`', prob = TRUE)
+
+summary(data$`Longitude of GEO`)
+```
+
+Creo variabili dummy
+```{r}
+
+# MASS: Levels: light heavy
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Mass.disc", remove_first_dummy = TRUE)
+
+# PERIOD: Levels: short medium long 
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Per.disc", remove_first_dummy = TRUE)
+
+# INCLINATION: Levels: low medium high 
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Inc.disc", remove_first_dummy = TRUE)
+
+# PERIGEE: Levels: low medium high  
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Pe.disc", remove_first_dummy = TRUE)
+
+# APOGEE: Levels: low high
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Ap.disc", remove_first_dummy = TRUE)
+```
+
+
+```{r}
+# dataset senza Purpose, Users, Continent, Orbit, Mass, Period,  Inclination, Apogee and Perigee
+
+dummy_data <- dummy_data[,c(1:2,6,9,12:16,19:33, 39:46)]
+
+```
+
+### COX MODEL
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Pe.disc_high",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox1)
+```
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox2 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox2)
+```
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox2 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox2)
+```
+
+Remove Purpose_Navigation
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox2 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox2)
+```
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox3 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox3)
+```
+Remove Users_Military
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox4 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox4)
+```
+Remove Inc.disch_high
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox5 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox5)
+```
+
+Rmevove Inc.disc_medium
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox6 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox6)
+```
+Rmevove Purpose_Earth_obs
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox7 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox7)
+```
+
+Remove Purpose_Tech dev
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Space Science",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Pe.disc_medium",
+    "Ap.disc_high"
+    
+  )
+
+n_coef <- length(covariates)
+
+cox8 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox8)
+```
+
+Remove Ap.disc high 
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Space Science",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Pe.disc_medium"
+    )
+
+n_coef <- length(covariates)
+
+cox9 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox9)
+```
+
+Remove Orbit_LEO
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Space Science",
+    "Orbit_GEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Pe.disc_medium"
+    )
+
+n_coef <- length(covariates)
+
+cox10 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox10)
+```
+
+Verifichiamo assunzioni:
+
+```{r}
+test <- cox.zph(cox10)
+test
+```
+Le assunzioni non sono verificate.
+
+
+
