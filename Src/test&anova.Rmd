@@ -410,32 +410,40 @@ diff <- t1-t2
 
 test1 <- function(diff, delta.0, B = 1000) {
   
-  
-  diff.mean <- mean(diff)
-  diff.cov <- var(diff)
-  diff.invcov <- solve(diff.cov)
+  data_trans <- diff - delta.0
+  T0 <- abs(mean(data_trans)) # statistic T=abs(mean(diff-delta.0))  (univariate case) 
+  T_perm <- numeric(B)
   n1 <- length(diff)
-  p <- 1
+  p <-1 
   
-  T20 <- as.numeric(t(diff.mean-delta.0)  %*% (diff.mean-delta.0))
   
-  T2 <- numeric(B)
+  # diff.mean <- mean(diff)
+  # diff.cov <- var(diff)
+  # diff.invcov <- solve(diff.cov)
+  # n1 <- length(diff)
+  # p <- 1
+  # 
+  # T20 <- as.numeric(t(diff.mean-delta.0)  %*% (diff.mean-delta.0))
+  # 
+  # T2 <- numeric(B)
   for(perm in 1:B)
     {
     # Random permutation
     # obs: exchanging data within couples means changing the sign of the difference
     signs.perm <- rbinom(n1, 1, 0.5)*2 - 1
+    data_trans_perm <- data_trans * signs.perm
+    T_perm[perm] <- abs(mean(data_trans_perm)) 
     
-    diff_perm <- diff * matrix(signs.perm,nrow=n1,ncol=p,byrow=FALSE)
-    diff.mean_perm <- mean(diff_perm)
-    diff.cov_perm <- cov(diff_perm)
-    diff.invcov_perm <- solve(diff.cov_perm)
-    
-    T2[perm] <- as.numeric(t(diff.mean_perm-delta.0) %*% (diff.mean_perm-delta.0))
+    # diff_perm <- diff * matrix(signs.perm,nrow=n1,ncol=p,byrow=FALSE)
+    # diff.mean_perm <- mean(diff_perm)
+    # diff.cov_perm <- cov(diff_perm)
+    # diff.invcov_perm <- solve(diff.cov_perm)
+    # 
+    # T2[perm] <- as.numeric(t(diff.mean_perm-delta.0) %*% (diff.mean_perm-delta.0))
   }
   
-  
-  p_val <- sum(T2>=T20)/B
+  p_val <- sum(T_perm >= T0)/B
+  #p_val <- sum(T2>=T20)/B
   
   return(p_val)
 
@@ -456,7 +464,7 @@ cl = makeCluster(n_cores)
 clusterExport(cl,varlist=list("diff","test1"))
 
 perm_wrapper <- function(grid_point) {
-  test1(diff, grid_point, B=2000)  # run a permutational t test where the hypothesised mean is the grid_point
+  test1(diff, grid_point, B=2000)  
 }
 
 pval_function <- pbsapply(grid, perm_wrapper, cl = cl)
@@ -477,7 +485,7 @@ abline(v=CI[1], col="red")
 abline(v=CI[2], col="red")
 ```
 
-BOOTSTRAP CONFIDENCE INTERVALS
+BOOTSTRAP DISTRIBUTION & CONFIDENCE INTERVALS for the mean of the difference
 
 ```{r}
 
@@ -487,10 +495,16 @@ cl=makeCluster(parallel::detectCores()/2)
 clusterExport(cl=cl,list('diff'))
 
 T.boot=pbreplicate(B,  
-                   median(sample(x1, replace = T)),
+                   mean(sample(diff, replace = T)),
                    cl=cl)
 
 plot(ecdf(T.boot), main='Sample mean of the difference')
 abline(v = T.obs, lty=2)
 
 ```
+
+Probability that the difference between the explife and the predlife (" amount of lie ") is \< x years wrt x years
+
+ex: probability that explife-predlife \< -3 (i.e the explife is underestimated by more than 3 years) is about 0.005.
+
+Intervals: ...
