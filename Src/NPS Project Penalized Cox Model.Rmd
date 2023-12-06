@@ -56,6 +56,7 @@ table(data$Status)
 
 Mischia righe
 ```{r}
+set.seed(0)
 data <- data[sample(nrow(data)), ]
 ```
 
@@ -104,8 +105,6 @@ library(glmnet)
 time <- dummy_data$`Effective Lifetime`
 status <- dummy_data$Status
 
-# Crea la formula di sopravvivenza
-f <- Surv(time, status == 'retired') ~ . 
 covariates <-
   c(
     "Longitude of GEO" ,
@@ -138,7 +137,8 @@ lambda.grid <- 10^seq(2, -5 ,length = 100)
 # Adatta un modello di regressione di Cox penalizzato usando glmnet
 # alpha = 1 per la penalizzazione L2 (Ridge)
 # alpha = 0 per la penalizzazione L1 (Lasso)
-cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 1, lambda = lambda.grid)
+
+cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.2, lambda = lambda.grid)
 
 # PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
 
@@ -152,6 +152,8 @@ fitAtLmin <- glmnet(x = as.matrix(dummy_data[,covariates]),  y = Surv(time,statu
 coef <- coef(fitAtLmin)
 
 ```
+
+
 The predictors selected by the elastic net-penalized model were then included in an unpenalized cox proportional hazards regression model to establish a baseline for comparison during model approximation. The baseline model was then reduced by backward elimination (see Supplementary Material for a full account). GUARDA https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7962780/#sup1
 
 
@@ -160,23 +162,19 @@ time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
+    "Inclination",
     "Mass",
     "Users_Commercial",
-    "Users_Military",
     "Users_Government",
     "Purpose_Earth Observation",
     "Purpose_Navigation",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Orbit_LEO",
     "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational",
-    "Continent_Oceania"
+    "Continent_Asia",
+    "Continent_Multinational"
     )
 
 cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
@@ -190,75 +188,63 @@ time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
+    "Inclination",
     "Mass",
     "Users_Commercial",
-    "Users_Military",
     "Users_Government",
     "Purpose_Earth Observation",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Orbit_LEO",
     "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational",
-    "Continent_Oceania"
+    "Continent_Asia",
+    "Continent_Multinational"
     )
 
 cox2 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
 summary(cox2)
 ```
 
-Tolgo Users_Military
+Tolgo Inclination
 
 ```{r}
 time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
     "Mass",
     "Users_Commercial",
     "Users_Government",
     "Purpose_Earth Observation",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Orbit_LEO",
     "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational",
-    "Continent_Oceania"
+    "Continent_Asia",
+    "Continent_Multinational"
     )
 
 cox3 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
 summary(cox3)
 ```
 
-Tolgo continent_Oceania
+Tolgo continent_Asia
 ```{r}
 time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
     "Mass",
     "Users_Commercial",
     "Users_Government",
     "Purpose_Earth Observation",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Orbit_LEO",
     "Continent_Americas",
-    "Continent_Europe",
     "Continent_Multinational"
     )
 
@@ -266,27 +252,22 @@ cox4 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_
 summary(cox4)
 ```
 
-Tolgo orbit Leo
+Tolgo Continent Multinational
 
 ```{r}
 time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
     "Mass",
     "Users_Commercial",
     "Users_Government",
     "Purpose_Earth Observation",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational"
-    )
+    "Continent_Americas"    )
 
 cox5 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
 summary(cox5)
@@ -298,20 +279,16 @@ Tolgo Purpose Earth observation
 time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
+
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
     "Mass",
     "Users_Commercial",
     "Users_Government",
     "Purpose_Space Science",
     "Purpose_Technology Development",
-    "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational"
-    )
+    "Continent_Americas"    )
 
 cox6 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
 summary(cox6)
@@ -322,77 +299,52 @@ Tolgo Purpose tech dev
 time <- dummy_data$`Effective Lifetime`
 Status <- dummy_data$Status
 
+
 variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
+    "Perigee",
     "Apogee",
-    "Eccentricity",
-    "Period",
     "Mass",
     "Users_Commercial",
     "Users_Government",
     "Purpose_Space Science",
-    "Continent_Americas",
-    "Continent_Europe",
-    "Continent_Multinational"
-    )
+    "Continent_Americas"    )
 
 cox7 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
 summary(cox7)
 ```
 
-Tolgo Continent Europe
-```{r}
-time <- dummy_data$`Effective Lifetime`
-Status <- dummy_data$Status
-
-variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
-    "Apogee",
-    "Eccentricity",
-    "Period",
-    "Mass",
-    "Users_Commercial",
-    "Users_Government",
-    "Purpose_Space Science",
-    "Continent_Americas",
-    "Continent_Multinational"
-    )
-
-cox8 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
-summary(cox8)
-```
-Tolgo Continent Multinomial
-```{r}
-time <- dummy_data$`Effective Lifetime`
-Status <- dummy_data$Status
-
-variable_sel <-c(  # con coef != 0
-    "Longitude of GEO",
-    "Apogee",
-    "Eccentricity",
-    "Period",
-    "Mass",
-    "Users_Commercial",
-    "Users_Government",
-    "Purpose_Space Science",
-    "Continent_Americas"
-    )
-
-cox9 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
-summary(cox9)
-```
 
 
 Verifica delle assunzioni
 ```{r}
-test <- cox.zph(cox9)
+test <- cox.zph(cox7)
 test
 
 
 # Residui
-ggcoxdiagnostics(cox9, type = "scaledsch")
+ggcoxdiagnostics(cox7, type = "scaledsch")
 ```
 
+Proviamo a stratizzare rispetto a Perigee   --> il modello non ha più nulla di significativo
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <-c(  # con coef != 0
+    "Perigee",
+    "Apogee",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Space Science",
+    "Continent_Americas"    )
+
+cox7 <- coxph(Surv(time, Status == 'retired') ~ strata(Perigee) + Apogee + Mass +Users_Commercial+  Users_Government +
+              dummy_data$`Purpose_Earth Observation` + Continent_Americas, data = dummy_data)
+summary(cox7)
+```
 
 ### COX PENALIZED MODEL + DISCRETE VARIABLES ( vedi file cox model + discrete var)
 Agiamo nello stesso modo di prima ma discretizziamo le variabili --> DA FARE
@@ -466,37 +418,480 @@ dummy_data <- dummy_cols(dummy_data, select_columns = "Ap.disc", remove_first_du
 ```{r}
 # dataset senza Purpose, Users, Continent, Orbit, Mass, Period,  Inclination, Apogee and Perigee
 
-dummy_data <- dummy_data[,c(1:2,6,9,12:16,19:33, 39:46)]
+dummy_data <- dummy_data[,c(1:3,6,9:12, 15:29, 35:42)]
+
+```
+
+Cox penalized model
+```{r}
+library(glmnet)
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high" ,
+    "Pe.disc_medium",
+    "Pe.disc_high",
+    "Ap.disc_high"
+  )
+
+n_coef = length(covariates)
+lambda.grid <- 10^seq(2, -5 ,length = 100)
+
+# Adatta un modello di regressione di Cox penalizzato usando glmnet
+# alpha = 1 per la penalizzazione L2 (Ridge)
+# alpha = 0 per la penalizzazione L1 (Lasso)
+
+cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.2, lambda = lambda.grid)
+
+# PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
+
+print(cox_model)
+
+bestlambda <- cox_model$lambda.min # con lasso lambda è quasi zero
+plot(cox_model)
+abline(v=log(bestlambda), lty=1)
+
+fitAtLmin <- glmnet(x = as.matrix(dummy_data[,covariates]),  y = Surv(time,status == 'retired') ,family="cox",lambda=bestlambda)
+coef <- coef(fitAtLmin)
+
+```
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Inc.disc_medium',
+  'Pe.disc_medium',
+  'Pe.disc_high',
+  'Ap.disc_high'
+)
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox1)
+
+```
+
+Rimuvo Pe.disc_high
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Inc.disc_medium',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox2 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox2)
+
+```
+
+Rimuovo Purpose_Navigation
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Inc.disc_medium',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox3 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox3)
+
+```
+Rimuovo Ap.disc_high
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Inc.disc_medium',
+  'Pe.disc_medium'
+)
+
+cox4 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox4)
+
+```
+
+Rimuovo Orbit Leo
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Inc.disc_medium',
+  'Pe.disc_medium'
+)
+
+cox5 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox5)
+
+```
+
+Rimuvo Inc.disc_medium 
+
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Asia',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox6 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox6)
+
+```
+
+Rimuovo Continent Asia
+
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox7 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox7)
+
+```
+Rimuovo `Purpose_Earth Observation`
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox8 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox8)
+
+```
+
+Rimuovo `Purpose_Tech dev`
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox9 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_sel])
+summary(cox9)
+
+```
+
+Le variabili con coef positivo aumentano rischio di morte. (Quelle negative il contrario)
+Un incremento di un'unita di Longitude of GEO diminusice l'hazard del 99% (?)...
+
+
+Plottiamo Hazard Ratio
+```{r}
+ggforest(cox9, data=dummy_data[,variable_sel])
+
+```
+Verifichiamo le assunzioni
+
+
+```{r}
+test <- cox.zph(cox9)
+test
+
+
+# Residui
+ggcoxdiagnostics(cox9, type = "scaledsch")
+```
+
+Proviamo a stratizzare rispetto a Orbit Geo
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox9 <-
+  coxph(
+    Surv(time, Status == 'retired') ~ dummy_data$`Longitude of GEO` + Users_Commercial + Users_Government + dummy_data$`Purpose_Space Science` + strata(Orbit_GEO) + Continent_Americas + Continent_Multinational + Mass.disc_heavy +                                           Pe.disc_medium , data = dummy_data)
+summary(cox9)
 
 ```
 
 
 
+Verifichiamo le assunzioni
 
 
+```{r}
+test <- cox.zph(cox9)
+test
 
 
+# Residui
+ggcoxdiagnostics(cox9, type = "scaledsch")
+```
+Martingale residuals 
+```{r}
+plot(predict(cox9), residuals(cox9, type='martingale'),
+     xlab='Fitted values', ylab='Martingale residuals', main='Residual Plot', las=1)
+# Add a line for residual=0
+abline(h=0, col='red')
+# Fit a smoother for the points
+lines(smooth.spline(predict(cox9), residuals(cox9, type='martingale')), col='blue')
+```
+I reesidui sembrano quasi distributiti intorno allo zero
+
+Deviance Residuals
+
+These residuals should be roughly symmetrically distributed about zero
+with a standard deviation of 1.
+
+-   Positive values correspond to individuals that "died too soon"
+    compared to expected survival times.
+-   Negative values correspond to individual that "lived too long".
+-   Very large or small values are outliers, which are poorly predicted
+    by the model.
+```{r}
+ggcoxdiagnostics(cox9, type = "deviance")
+
+```
+Sembrano esserci degli outliers e le assunzioni non sono completamente verificate
+
+Proviamo a stratizzare rispetto a Users Gov
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+Status <- dummy_data$Status
 
 
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Orbit_GEO',
+  'Continent_Americas',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Pe.disc_medium'
+)
+
+cox9 <-
+  coxph(
+    Surv(time, Status == 'retired') ~ dummy_data$`Longitude of GEO` + Users_Commercial + strata(Users_Government) + dummy_data$`Purpose_Space Science` + strata(Orbit_GEO) + Continent_Americas + Continent_Multinational + Mass.disc_heavy +                                           Pe.disc_medium , data = dummy_data)
+summary(cox9)
+
+```
+```{r}
+test <- cox.zph(cox9)
+test
 
 
+# Residui
+ggcoxdiagnostics(cox9, type = "scaledsch")  
+```
+Le assunzioni sono verificate anche se si evidenzia la presenza di outliers ( alti residui)
+
+Deviance Residuals
+
+These residuals should be roughly symmetrically distributed about zero
+with a standard deviation of 1.
+
+-   Positive values correspond to individuals that "died too soon"
+    compared to expected survival times.
+-   Negative values correspond to individual that "lived too long".
+-   Very large or small values are outliers, which are poorly predicted
+    by the model.
+```{r}
+ggcoxdiagnostics(cox9, type = "deviance")
+
+```
+### PREDICTION
 
 
+```{r}
+new_dataset <- # scegliere satelliti significativi
+```
 
 
+```{r}
+fit <- survfit(cox9, newdata = new_dataset)
+print(fit) # qui mi dà le nuove hazard function -> funzione del rischio di morte 
+
+# stima del tempo di vita mediano
+median_survival_time <- quantile(fit, probs = 0.5)
+print(median_survival_time)
+
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r}
+```
 
