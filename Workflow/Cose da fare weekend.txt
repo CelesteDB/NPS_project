@@ -1,3 +1,0 @@
-1) Rivedere tutto il lavoro con dataset equilbarted se nuovo dataset non arriva
-
-2) Rifare i plot
