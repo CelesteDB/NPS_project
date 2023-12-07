@@ -99,7 +99,7 @@ kable(head(tidy(fit),20))
 
 Median:
 ```{r}
-surv_median(fit) #not reached
+surv_median(fit) 
 ```
 
 Rem: not reached

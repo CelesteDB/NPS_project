@@ -282,16 +282,14 @@ p.value
 
 TWO SAMPLE PAIRED UNIVARIATE PERMUTATION TEST (the one that we consider)
 
-H0 : E[ X - Y ] = 0 vs H1: E[ X - Y] != 0
+H0 : X and Y have the same distribution
 
 ```{r}
 t1=explife
 t2=predlife
-n=length(diff)
-
 delta.0 <- 0
-
 diff <- t1-t2
+n=length(diff)
 
 T20 <- abs(mean(diff-delta.0))
 
@@ -457,6 +455,7 @@ values.within.CI <- grid[pval_function > alpha]
 CI <- range(values.within.CI)  # obtain the confidence interval
 abline(v=CI[1], col="red")
 abline(v=CI[2], col="red")
+abline(v = mean(diff), lty=2)
 ```
 
 BOOTSTRAP DISTRIBUTION & CONFIDENCE INTERVALS for the mean of the difference
