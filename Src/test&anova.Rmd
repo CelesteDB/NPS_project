@@ -8,6 +8,16 @@ date: "2023-11-28"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Dal file sul penalized cox model:
+
+```{r}
+# Dal file sul penalized cox model:
+explife <- training_set$`Expected Lifetime`
+ed1 <- coxed(cox18, method="npsf")
+predlife <- ed1$exp.dur
+n <- length(explife)
+```
+
 ```{r}
 #install.packages("openxlsx")
 #library("openxlsx")

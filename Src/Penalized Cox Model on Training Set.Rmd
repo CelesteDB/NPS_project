@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 
+#data <- data[-which(is.na(data$`Expected Lifetime`)),]
 
 set.seed(123)
 library(caret)
@@ -195,6 +196,8 @@ variable_sel <-c(  # con coef != 0
 cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
 summary(cox1)
 ```
+
+
 
 Rimuovo purpose_Navigation
 
@@ -1164,7 +1167,7 @@ USING coxed PACKAGE
 library(coxed)
 
 ed1 <- coxed(cox18, method="npsf")
-head(ed1$exp.dur)
+predlife=ed1$exp.dur
 #mean and median of the predicted durations:
 ed1$mean
 ed1$median
@@ -1179,8 +1182,11 @@ ggplot(baseline, aes(x=time, y=value)) +
 
 #PREDICTION:
 
-pred <- coxed(cox18, newdata=dummy_test_set1, method="npsf") #ERRORE: LUNGHEZZE DIFFERISCONO. ???????
-pred <- coxed(cox18, newdata=dummy_test_set1, method="npsf", bootstrap=TRUE, B=1000)
+dummy_test_set2 <- dummy_test_set1[,c(3,9,10,14,19,24,29,26,31)]
+names(dummy_test_set2)
+
+pred <- coxed(cox18, newdata=dummy_test_set2, method="npsf") #ERRORE: LUNGHEZZE DIFFERISCONO. ???????
+pred <- coxed(cox18, newdata=dummy_test_set2, method="npsf", bootstrap=TRUE, B=1000)
 pred$exp.dur
 
 
