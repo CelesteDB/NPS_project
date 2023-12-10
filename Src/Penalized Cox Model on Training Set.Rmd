@@ -1,0 +1,1188 @@
+---
+title: "Penalized Cox Model on test set"
+output: html_document
+date: "2023-12-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(readxl)
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+
+
+set.seed(123)
+library(caret)
+# Crea un indice di divisione tra training set e test set
+index <- createDataPartition(data$`Effective Lifetime`, p = 0.8, list = FALSE)
+# Crea il training set utilizzando l'indice
+training_set <- data[index, ]
+dim(training_set)
+# Crea il test set utilizzando l'indice
+test_set <- data[-index, ]
+dim(test_set)
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+Summary:
+```{r}
+summary(training_set)
+```
+
+Rendi colonne factor:
+```{r}
+training_set$Country <- factor(training_set$Country, ordered = F)
+print('Country')
+table(training_set$Country)
+
+training_set$Continent <- factor(training_set$Continent, ordered = F)
+print('Continent')
+table(training_set$Continent)
+
+training_set$Users <- factor(training_set$Users, ordered = F)
+print('Users')
+table(training_set$Users)
+
+training_set$Purpose <- factor(training_set$Purpose, ordered = F)
+print('Purpose')
+table(training_set$Purpose)
+
+training_set$Orbit <- factor(training_set$Orbit, ordered = F)
+print('Class of Orbit')
+table(training_set$Orbit)
+
+training_set$Status <- factor(training_set$Status, ordered = F)
+print('Status')
+table(training_set$Status)
+```
+
+Mischia righe
+```{r}
+set.seed(0)
+training_set <- training_set[sample(nrow(training_set)), ]
+```
+
+data l'alta collinearità proviamo penalized cox model.
+
+```{r}
+#install.packages("fastDummies")
+library(fastDummies)
+
+# USERS : Levels: Civil Commercial Government Military
+
+dummy_training_set <- dummy_cols(training_set, select_columns = "Users", remove_first_dummy = TRUE)
+
+# PURPOSE : Levels: Communications Earth Observation Navigation Space Science Technology Development
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Purpose", remove_first_dummy = TRUE)
+
+
+# ORBIT : Levels: Elliptical GEO LEO MEO
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Orbit", remove_first_dummy = TRUE)
+
+
+# CONTINENT: Levels: Africa Americas Asia Europe Multinational Oceania
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Continent", remove_first_dummy = TRUE)
+
+
+# training_setset senza Purpose, Users, Continent and Orbit
+
+dummy_training_set <- dummy_training_set[,c(1:2,6:17,19:33)]
+
+```
+
+### PENALIZED COX MODEL 
+Alucni link utili: 
+-https://stats.stackexchange.com/questions/416183/cox-regression-with-lasso-regression/416279#416279
+-https://glmnet.stanford.edu/articles/Coxnet.html#basic-usage-for-right-censored-training_set
+-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7962780/#sup1
+
+Usiamo pacchetto glmnet
+
+https://cran.r-project.org/web/packages/glmnet/glmnet.pdf
+```{r}
+library(glmnet)
+time <- dummy_training_set$`Effective Lifetime`
+status <- dummy_training_set$Status
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Perigee" ,
+    "Apogee",
+    "Eccentricity" ,
+    "Inclination",
+    "Period",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania"
+  )
+
+n_coef = length(covariates)
+lambda.grid <- 10^seq(2, -5 ,length = 100)
+
+# Adatta un modello di regressione di Cox penalizzato usando glmnet
+# alpha = 1 per la penalizzazione L2 (Ridge)
+# alpha = 0 per la penalizzazione L1 (Lasso)
+
+cox_model <- cv.glmnet(x = as.matrix(dummy_training_set[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.2, lambda = lambda.grid)
+
+# PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
+
+print(cox_model)
+
+bestlambda <- cox_model$lambda.min # con lasso lambda è quasi zero
+plot(cox_model)
+abline(v=log(bestlambda), lty=1)
+
+fitAtLmin <- glmnet(x = as.matrix(dummy_training_set[,covariates]),  y = Surv(time,status == 'retired') ,family="cox",lambda=bestlambda)
+coef <- coef(fitAtLmin)
+
+```
+
+
+The predictors selected by the elastic net-penalized model were then included in an unpenalized cox proportional hazards regression model to establish a baseline for comparison during model approximation. The baseline model was then reduced by backward elimination (see Supplementary Material for a full account). GUARDA https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7962780/#sup1
+
+
+```{r}
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+variable_sel <-c(  # con coef != 0
+    "Perigee",
+    "Apogee",
+    "Inclination",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_LEO",
+    "Continent_Asia"
+    )
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox1)
+```
+
+Rimuovo purpose_Navigation
+
+```{r}
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+variable_sel <-c(  # con coef != 0
+    "Perigee",
+    "Apogee",
+    "Inclination",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_LEO",
+    "Continent_Asia"
+    )
+
+cox2 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox2)
+```
+Rimuovo orbit_LEO
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+variable_sel <-c(  # con coef != 0
+    "Perigee",
+    "Apogee",
+    "Inclination",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Continent_Asia"
+    )
+
+cox3 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox3)
+```
+Rimuovo Inclination
+
+```{r}
+
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+variable_sel <-c(  # con coef != 0
+    "Perigee",
+    "Apogee",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Continent_Asia"
+    )
+
+cox4 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox4)
+```
+Rimuovo perigeo
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+variable_sel <-c(  # con coef != 0
+    "Apogee",
+    "Mass",
+    "Users_Commercial",
+    "Users_Government",
+    "Purpose_Earth Observation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Continent_Asia"
+    )
+
+cox5 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox5)
+
+```
+Verifying assumptions
+
+```{r}
+
+test <- cox.zph(cox5)
+test
+
+
+```
+
+Try to stratify wrt Purpose_earth observation
+
+```{r}
+
+cox6 <- coxph(Surv(time, Status == 'retired') ~  Apogee + Mass +Users_Commercial+  Users_Government +
+              strata(dummy_training_set$`Purpose_Earth Observation`) + dummy_training_set$`Purpose_Space Science`+ dummy_training_set$`Purpose_Technology Development`+ Continent_Asia , data = dummy_training_set) 
+summary(cox6)
+```
+verifying assumptions 
+
+```{r}
+test <- cox.zph(cox6)
+test
+
+```
+Try to stratify wrt apogee
+
+```{r}
+
+cox7 <- coxph(Surv(time, Status == 'retired') ~  strata(Apogee) + Mass +Users_Commercial+  Users_Government +
+              strata(dummy_training_set$`Purpose_Earth Observation`) + dummy_training_set$`Purpose_Space Science`+ dummy_training_set$`Purpose_Technology Development`+ Continent_Asia , data = dummy_training_set) 
+summary(cox7)
+```
+We lose significance for all variables
+
+
+### COX PENALIZED MODEL + DISCRETE VARIABLES ( vedi file cox model + discrete var)
+Agiamo nello stesso modo di prima ma discretizziamo le variabili --> DA FARE
+
+Discretiziamo la massa
+
+```{r}
+Massa.disc <- cut(training_set$Mass, breaks=c(0, 1000, Inf), labels=c("light", "heavy"))
+dummy_training_set$Mass.disc <- Massa.disc
+
+```
+
+Discretiziamo il periodo
+
+```{r}
+Per.disc <- cut(training_set$Period, breaks=c(0, 500, 1000, Inf), labels=c("short", "medium", "long"))
+dummy_training_set$Per.disc <- Per.disc
+
+```
+
+Discretiziamo l'inclination
+
+```{r}
+Inc.disc <- cut(training_set$Inclination, breaks=c(-Inf, 40, 70, Inf), labels=c("low", "medium", "high"))
+dummy_training_set$Inc.disc <- Inc.disc
+
+```
+
+Discretiziamo Apogeo
+
+```{r}
+Ap.disc <- cut(training_set$Apogee, breaks=c(0, 25000, Inf), labels=c("low", "high"))
+dummy_training_set$Ap.disc <- Ap.disc
+
+```
+
+Discretiziamo Perigee
+
+```{r}
+Pe.disc <- cut(training_set$Perigee, breaks=c(0, 5000, 25000, Inf), labels=c("low","medium","high"))
+dummy_training_set$Pe.disc <- Pe.disc
+
+```
+
+
+Creo variabili dummy
+```{r}
+
+# MASS: Levels: light heavy
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Mass.disc", remove_first_dummy = TRUE)
+
+# PERIOD: Levels: short medium long 
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Per.disc", remove_first_dummy = TRUE)
+
+# INCLINATION: Levels: low medium high 
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Inc.disc", remove_first_dummy = TRUE)
+
+# PERIGEE: Levels: low medium high  
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Pe.disc", remove_first_dummy = TRUE)
+
+# APOGEE: Levels: low high
+
+dummy_training_set <- dummy_cols(dummy_training_set, select_columns = "Ap.disc", remove_first_dummy = TRUE)
+```
+
+
+```{r}
+# training_setset senza Purpose, Users, Continent, Orbit, Mass, Period,  Inclination, Apogee and Perigee
+
+dummy_training_set <- dummy_training_set[,c(1:3,6,9:12, 15:29, 35:42)]
+
+```
+
+Cox penalized model
+```{r}
+library(glmnet)
+time <- dummy_training_set$`Effective Lifetime`
+status <- dummy_training_set$Status
+
+covariates <-
+  c(
+    "Longitude of GEO" ,
+    "Eccentricity" ,
+    "Users_Commercial",
+    "Users_Government",
+    "Users_Military",
+    "Purpose_Earth Observation",
+    "Purpose_Navigation",
+    "Purpose_Space Science",
+    "Purpose_Technology Development",
+    "Orbit_GEO",
+    "Orbit_LEO",
+    "Orbit_MEO",
+    "Continent_Americas",
+    "Continent_Asia",
+    "Continent_Europe",
+    "Continent_Multinational",
+    "Continent_Oceania",
+    "Mass.disc_heavy",
+    "Per.disc_medium",
+    "Per.disc_long",
+    "Inc.disc_medium",
+    "Inc.disc_high" ,
+    "Pe.disc_medium",
+    "Pe.disc_high",
+    "Ap.disc_high"
+  )
+
+n_coef = length(covariates)
+lambda.grid <- 10^seq(2, -5 ,length = 100)
+
+# Adatta un modello di regressione di Cox penalizzato usando glmnet
+# alpha = 1 per la penalizzazione L2 (Ridge)
+# alpha = 0 per la penalizzazione L1 (Lasso)
+
+cox_model <- cv.glmnet(x = as.matrix(dummy_training_set[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.2, lambda = lambda.grid)
+
+# PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
+
+print(cox_model)
+
+bestlambda <- cox_model$lambda.min # con lasso lambda è quasi zero
+plot(cox_model)
+abline(v=log(bestlambda), lty=1)
+
+fitAtLmin <- glmnet(x = as.matrix(dummy_training_set[,covariates]),  y = Surv(time,status == 'retired') ,family="cox",lambda=bestlambda)
+coef <- coef(fitAtLmin)
+```
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Eccentricity',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_GEO',
+  'Orbit_LEO' ,
+  'Orbit_MEO',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Pe.disc_high',
+  'Ap.disc_high'
+)
+
+cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox1)
+```
+
+
+Rimuovo Orbit_GEO
+
+```{r}
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Eccentricity',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Orbit_MEO',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Pe.disc_high',
+  'Ap.disc_high'
+)
+
+cox2 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox2)
+
+
+```
+
+Rimuovo Pe.disc.high
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Eccentricity',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Orbit_MEO',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox3 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox3)
+
+```
+
+Tolgo Orbit_MEO
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Eccentricity',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Navigation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox4 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox4)
+
+```
+
+Rimuovo Purpose Navigation
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Eccentricity',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox5 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox5)
+
+
+```
+
+
+Rimuovo eccentricity
+
+```{r}
+
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_medium',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox6 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox6)
+
+```
+
+Rimuovo per.disc.medium
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Users_Military',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox7 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox7)
+
+```
+
+Rimuovo users_military
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Continent_Oceania',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox8 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox8)
+
+
+```
+
+Tolgo continent_oceania
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Orbit_LEO' ,
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox9 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox9)
+
+
+```
+
+tolgo orbit LEO
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Continent_Multinational',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox10 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox10)
+
+
+```
+tolgo continent_multinational
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Inc.disc_high',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox11 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox11)
+```
+
+tolgo inc.disc_high
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Inc.disc_medium',
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox12 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox12)
+```
+
+tolgo inc.disc_medium
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Continent_Europe',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox13 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox13)
+
+```
+
+Rimuovo Continent_Europe
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Earth Observation',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox14 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox14)
+```
+rimuovo purpose_earth obs
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Purpose_Technology Development',
+  'Continent_Americas',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox15 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox15)
+
+```
+
+rimuovo purpose tech dev
+
+```{r}
+
+time <- dummy_training_set$`Effective Lifetime`
+Status <- dummy_training_set$Status
+
+
+variable_sel <- c(
+  # con coef != 0
+  'Longitude of GEO',
+  'Users_Commercial',
+  'Users_Government',
+  'Purpose_Space Science',
+  'Continent_Americas',
+  'Mass.disc_heavy',
+  'Per.disc_long', 
+  'Pe.disc_medium',
+  'Ap.disc_high'
+)
+
+cox16 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_training_set[,variable_sel])
+summary(cox16)
+
+
+```
+
+Verifying assumptions
+```{r}
+
+test <- cox.zph(cox16)
+test
+```
+
+Try to stratify wrt ap.disc_high
+
+```{r}
+
+cox17 <-
+  coxph(
+    Surv(time, Status == 'retired') ~ dummy_training_set$`Longitude of GEO` + Users_Commercial + Users_Government + dummy_training_set$`Purpose_Space Science` +  Continent_Americas + Mass.disc_heavy + Pe.disc_medium + Per.disc_long + strata(dummy_training_set$Ap.disc_high), data = dummy_training_set)
+summary(cox17)
+
+
+```
+Verifying assumptions
+```{r}
+
+test <- cox.zph(cox17)
+test
+```
+
+Try to stratify wrt users_government
+
+```{r}
+
+cox18 <-
+  coxph(
+    Surv(time, Status == 'retired') ~ dummy_training_set$`Longitude of GEO` + Users_Commercial + strata(Users_Government) + dummy_training_set$`Purpose_Space Science` +  Continent_Americas + Mass.disc_heavy + Pe.disc_medium + Per.disc_long + strata(dummy_training_set$Ap.disc_high), data = dummy_training_set)
+summary(cox18)
+
+```
+
+Verifying assumptions
+```{r}
+test <- cox.zph(cox18)
+test
+
+# Residui
+ggcoxdiagnostics(cox18, type = "scaledsch")
+
+```
+
+Martingale residuals 
+```{r}
+plot(predict(cox18), residuals(cox9, type='martingale'),
+     xlab='Fitted values', ylab='Martingale residuals', main='Residual Plot', las=1)
+# Add a line for residual=0
+abline(h=0, col='red')
+# Fit a smoother for the points
+lines(smooth.spline(predict(cox18), residuals(cox18, type='martingale')), col='blue')
+```
+
+Deviance residuals
+```{r}
+ggcoxdiagnostics(cox18, type = "deviance")
+```
+
+
+
+PREDICTED LIFETIME:
+
+creo dummy nel test set
+```{r}
+library(fastDummies)
+
+# USERS : Levels: Civil Commercial Government Military
+
+dummy_test_set <- dummy_cols(test_set, select_columns = "Users", remove_first_dummy = TRUE)
+
+# PURPOSE : Levels: Communications Earth Observation Navigation Space Science Technology Development
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Purpose", remove_first_dummy = TRUE)
+
+
+# ORBIT : Levels: Elliptical GEO LEO MEO
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Orbit", remove_first_dummy = TRUE)
+
+
+# CONTINENT: Levels: Africa Americas Asia Europe Multinational Oceania
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Continent", remove_first_dummy = FALSE)
+
+
+# training_setset senza Purpose, Users, Continent and Orbit
+
+dummy_test_set <- dummy_test_set[,c(1:2,6:17,19:33)]
+```
+Discretiziamo la massa
+
+```{r}
+Massa.disc <- cut(test_set$Mass, breaks=c(0, 1000, Inf), labels=c("light", "heavy"))
+dummy_test_set$Mass.disc <- Massa.disc
+
+```
+
+Discretiziamo il periodo
+
+```{r}
+Per.disc <- cut(test_set$Period, breaks=c(0, 500, 1000, Inf), labels=c("short", "medium", "long"))
+dummy_test_set$Per.disc <- Per.disc
+
+```
+
+Discretiziamo l'inclination
+
+```{r}
+Inc.disc <- cut(test_set$Inclination, breaks=c(-Inf, 40, 70, Inf), labels=c("low", "medium", "high"))
+dummy_test_set$Inc.disc <- Inc.disc
+
+```
+
+Discretiziamo Apogeo
+
+```{r}
+Ap.disc <- cut(test_set$Apogee, breaks=c(0, 25000, Inf), labels=c("low", "high"))
+dummy_test_set$Ap.disc <- Ap.disc
+
+```
+
+Discretiziamo Perigee
+
+```{r}
+Pe.disc <- cut(test_set$Perigee, breaks=c(0, 5000, 25000, Inf), labels=c("low","medium","high"))
+dummy_test_set$Pe.disc <- Pe.disc
+
+```
+
+
+Creo variabili dummy
+```{r}
+
+# MASS: Levels: light heavy
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Mass.disc", remove_first_dummy = TRUE)
+
+# PERIOD: Levels: short medium long 
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Per.disc", remove_first_dummy = TRUE)
+
+# INCLINATION: Levels: low medium high 
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Inc.disc", remove_first_dummy = TRUE)
+
+# PERIGEE: Levels: low medium high  
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Pe.disc", remove_first_dummy = TRUE)
+
+# APOGEE: Levels: low high
+
+dummy_test_set <- dummy_cols(dummy_test_set, select_columns = "Ap.disc", remove_first_dummy = TRUE)
+
+dummy_test_set <- dummy_test_set[,c(1:3,6,9:13,15:42)]
+dummy_test_set <- dummy_test_set[,-c(25:29)]
+
+#tolgo expected lifetime
+dummy_test_set1=dummy_test_set[,-9]
+
+```
+
+
+PREDICTED LIFETIME:
+
+USING coxed PACKAGE
+```{r}
+
+library(coxed)
+
+ed1 <- coxed(cox18, method="npsf")
+head(ed1$exp.dur)
+#mean and median of the predicted durations:
+ed1$mean
+ed1$median
+
+# PLOT: The estimated cumulative baseline hazard function and survivor function
+baseline <- gather(ed1$baseline.functions, cbh, survivor, key="survivefunction", value="value")
+ggplot(baseline, aes(x=time, y=value)) +
+     geom_line() +
+     xlab("Time") +
+     ylab("Function") +
+     facet_wrap( ~ survivefunction, scales = "free")
+
+#PREDICTION:
+
+pred <- coxed(cox18, newdata=dummy_test_set1, method="npsf") #ERRORE: LUNGHEZZE DIFFERISCONO. ???????
+pred <- coxed(cox18, newdata=dummy_test_set1, method="npsf", bootstrap=TRUE, B=1000)
+pred$exp.dur
+
+
+```
+
