@@ -13,18 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 
-#data <- data[-which(is.na(data$`Expected Lifetime`)),]
 
-set.seed(123)
-library(caret)
-# Crea un indice di divisione tra training set e test set
-index <- createDataPartition(data$`Effective Lifetime`, p = 0.8, list = FALSE)
-# Crea il training set utilizzando l'indice
-training_set <- data[index, ]
-dim(training_set)
-# Crea il test set utilizzando l'indice
-test_set <- data[-index, ]
-dim(test_set)
 ```
 
 Libraries:
