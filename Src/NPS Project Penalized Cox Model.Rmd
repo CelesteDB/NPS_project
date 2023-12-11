@@ -7,7 +7,7 @@ date: "2023-12-04"
 
 ```{r}
 library(readxl)
-data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+data <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
 ```
 
 Libraries:
@@ -138,7 +138,7 @@ lambda.grid <- 10^seq(2, -5 ,length = 100)
 # alpha = 1 per la penalizzazione L2 (Ridge)
 # alpha = 0 per la penalizzazione L1 (Lasso)
 
-cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.2, lambda = lambda.grid)
+cox_model <- cv.glmnet(x = as.matrix(dummy_data[,covariates]), y = Surv(time,status == 'retired'), family = "cox", alpha = 0.6, lambda = lambda.grid)
 
 # PROVA A CAMBIARE VALORE DI ALPHA ---> ELASTIC NET FORSE è MEGLIO
 
