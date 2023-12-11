@@ -17,6 +17,7 @@ Nomi colonne:
 ```{r}
 names(data)
 ```
+
 Rimozione colonne inutili:
 ```{r}
 columns_to_remove <- c("Name of Satellite, Alternate Names", "Country/Org of UN Registry", "Operator/Owner", "Detailed Purpose", "Type of Orbit", "Contractor", "Launch Site", "Launch Vehicle", "COSPAR Number", "NORAD Number", "Comments", "...32", "Source Used for Orbital Data", "Source...34", "Source...35", "Source...36", "Source...37", "Source...38", "Source...39", "Source...40")

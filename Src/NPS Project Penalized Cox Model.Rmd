@@ -181,6 +181,8 @@ cox1 <- coxph(Surv(time, Status == 'retired') ~ . , data = dummy_data[,variable_
 summary(cox1)
 ```
 
+
+
 Rimuovo purpose_Navigation
 
 ```{r}

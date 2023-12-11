@@ -59,6 +59,7 @@ table(data$Status)
 
 Mischia righe
 ```{r}
+set.seed(42)
 data <- data[sample(nrow(data)), ]
 ```
 
@@ -99,10 +100,8 @@ kable(head(tidy(fit),20))
 
 Median:
 ```{r}
-surv_median(fit) 
+surv_median(fit) #6.32
 ```
-
-Rem: not reached
 
 
 Plot of KM estimator curve
@@ -146,6 +145,7 @@ Cumulative Hazard
 ggsurvplot(fit, data = data,
            risk.table = TRUE, # Add risk table
            ggtheme = theme_bw(), # Change ggplot2 theme
+           cumhaz.median.line = "hv", # Specify median survival
            break.time.by=5,
            fun='cumhaz',
            title="Cumulative Hazard Curve for Satellites Survival")

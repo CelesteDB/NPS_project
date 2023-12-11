@@ -56,21 +56,33 @@ Mischia righe
 ```{r}
 data <- data[sample(nrow(data)), ]
 ```
+
 Exploration of numerical variables:
+
+Recall that eccentricity is a function of perigee and apogee
+
+Longitude of geo is where the satellite is wrt greenwich meridian (all satellites are geosynchronous, ie they have same rotational speed as hearth)
+
+Period ^ 2 is proportional to a ^ 3, where a = (apogee + perigee)/2
+
+Type of orbit is a classification based on eccentricity
+
+I would therefore keep only type of orbit and exclude eccentricity, as well as perigee and apogee since they are very correlated with period and type of orbit summarizes them
+
 ```{r}
 num <- c("Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass")
 data_num <- data[,num]
 
 cor(data_num)
-# Apogee - Period 0.96672436  
-# Perigee - Inclination -0.88628415   
-# Perigee - Period 0.8327784  
-# Period - Inclination -0.73233046  
-# Apogee - Perigee 0.67998408  
+# Apogee - Period 0.97263559  
+# Perigee - Period 0.88954088 
+# Perigee - Inclination -0.82988349   
+# Apogee - Perigee 0.78883152     
+# Period - Inclination -0.73168416   
 # Apogee - Eccentricity 0.67998408  
-# Apogee - Inclination -0.60232423  
+# Apogee - Inclination -0.65478644    
 
-pairs(data_num)
+pairs(data_num, pch = 19)
 ```
 
 ### COX MODEL
@@ -102,7 +114,6 @@ dummy_data <- dummy_cols(dummy_data, select_columns = "Continent", remove_first_
 # dataset senza Purpose, Users, Continent and Orbit
 
 dummy_data <- dummy_data[,c(1:2,6:17,19:33)]
-
 ```
 
 
@@ -110,14 +121,14 @@ dummy_data <- dummy_data[,c(1:2,6:17,19:33)]
 time <- dummy_data$`Effective Lifetime`
 status <- dummy_data$Status
 
-covariates <- c("Longitude of GEO" , "Perigee" ,"Apogee", "Eccentricity" ,"Inclination", "Period", "Mass", "Users_Commercial", "Users_Government",                      "Users_Military", "Purpose_Earth Observation", "Purpose_Navigation", "Purpose_Space Science", "Purpose_Technology Development",                        "Orbit_GEO", "Orbit_LEO",  "Orbit_MEO", "Continent_Americas", "Continent_Asia", "Continent_Europe", "Continent_Multinational",       
-                 "Continent_Oceania")
+# , "Eccentricity", "Longitude of GEO", "Perigee" ,"Apogee" ,
+
+covariates <- c( "Inclination", "Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Purpose_Earth Observation", "Purpose_Navigation", "Purpose_Space Science", "Purpose_Technology Development", "Orbit_GEO", "Orbit_LEO",  "Orbit_MEO", "Continent_Americas", "Continent_Asia", "Continent_Europe", "Continent_Multinational", "Continent_Oceania")
 
 n_coef <- length(covariates)
 
 cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
 summary(cox1)
-
 ```
 
 Rimuovo `Purpose_Technology Development`
@@ -145,7 +156,6 @@ n_coef <- length(covariates)
 
 cox3 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
 summary(cox3)
-
 ```
 
 
