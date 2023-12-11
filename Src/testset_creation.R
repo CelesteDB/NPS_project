@@ -1,5 +1,6 @@
 
 library(readxl)
+library(dplyr)
 data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
 
 set.seed(123)
@@ -24,3 +25,7 @@ dim(training_set)
 test_set <- sub[-index, ]
 dim(test_set)
 
+library(openxlsx)
+
+write.xlsx(test_set, file = 'TestSet.xlsx', rowNames = FALSE)
+write.xlsx(training_set, file = 'TrainingSet.xlsx', rowNames = FALSE)
