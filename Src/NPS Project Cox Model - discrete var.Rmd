@@ -102,6 +102,7 @@ cor(data_num)
 
 pairs(data_num)
 ```
+
 Mass: include it
 ```{r}
 plot(data$Mass, data$`Effective Lifetime`, xlab='Mass')
@@ -116,23 +117,40 @@ Discretiziamo la massa
 Massa.disc <- cut(data$Mass, breaks=c(0, 1000, Inf), labels=c("light", "heavy"))
 dummy_data$Mass.disc <- Massa.disc
 
+boxplot(data$`Effective Lifetime`~ Massa.disc)
 ```
+
+
 
 
 Period:
 ```{r}
 plot(data$Period, data$`Effective Lifetime`, xlab='Period')
-hist(data$Period, xlab='Period', main='Histogram of Period', prob = TRUE)
+hist(data$Period[which(data$Period <2000)], xlab='Period', main='Histogram of Period', prob = TRUE)
 
 summary(data$Period)
 ```
 
-Discretiziamo il periodo
+Discretize period
+
+488 satellites with period < 500
+220 satellites with period between 500 and 2000
+6 satellites with period > 2000
 
 ```{r}
-Per.disc <- cut(data$Period, breaks=c(0, 500, 1000, Inf), labels=c("short", "medium", "long"))
-dummy_data$Per.disc <- Per.disc
+# Per.disc <- cut(data$Period, breaks=c(0, 500, 1000, Inf), labels=c("short", "medium", "long"))
+# dummy_data$Per.disc <- Per.disc
+# table(Per.disc)
+#  short medium   long 
+#    488     44    182 
 
+Per.disc <- cut(data$Period, breaks=c(0, 1000, Inf), labels=c("short", "long"))
+dummy_data$Per.disc <- Per.disc
+table(Per.disc)
+# short  long 
+#   532   182 
+
+boxplot(data$`Effective Lifetime`~ Per.disc)
 ```
 
 
@@ -146,19 +164,29 @@ summary(data$Inclination)
 Discretiziamo l'inclination
 
 ```{r}
-Inc.disc <- cut(data$Inclination, breaks=c(-Inf, 40, 70, Inf), labels=c("low", "medium", "high"))
-dummy_data$Inc.disc <- Inc.disc
+# Inc.disc <- cut(data$Inclination, breaks=c(0, 45, 180), labels=c("low", "high"))
+# dummy_data$Inc.disc <- Inc.disc
+# table(Inc.disc)
+   # low medium   high 
+   # 160    212    322 
 
+Inc.disc <- cut(data$Inclination, breaks=c(0, 45, 180), labels=c("low", "high"))
+dummy_data$Inc.disc <- Inc.disc
+table(Inc.disc)
+#  low high 
+#  188  506 
+boxplot(data$`Effective Lifetime`~ Inc.disc)
 ```
 
 
-Eccentricity: ( Non faccio nulla, non è significativa)
+Eccentricity: (Non faccio nulla, non è significativa)
 ```{r}
 plot(data$Eccentricity, data$`Effective Lifetime`, xlab='Eccentricity')
 hist(data$Eccentricity, xlab='Eccentricity', main='Histogram of Eccentricity', prob = TRUE)
 
 summary(data$Eccentricity)
 ```
+
 Apogee
 ```{r}
 plot(data$Apogee, data$`Effective Lifetime`, xlab='Apogee')
@@ -172,6 +200,7 @@ Discretiziamo Apogeo
 Ap.disc <- cut(data$Apogee, breaks=c(0, 25000, Inf), labels=c("low", "high"))
 dummy_data$Ap.disc <- Ap.disc
 
+boxplot(data$`Effective Lifetime`~ Ap.disc)
 ```
 
 
@@ -186,9 +215,21 @@ summary(data$Perigee)
 Discretiziamo Perigee
 
 ```{r}
-Pe.disc <- cut(data$Perigee, breaks=c(0, 5000, 25000, Inf), labels=c("low","medium","high"))
+# Pe.disc <- cut(data$Perigee, breaks=c(0, 5000, 25000, Inf), labels=c("low","medium","high"))
+# dummy_data$Pe.disc <- Pe.disc
+# 
+# table(Pe.disc)
+   # low medium   high 
+   # 495     49    170 
+
+Pe.disc <- cut(data$Perigee, breaks=c(0, 10000, Inf), labels=c("low","high"))
 dummy_data$Pe.disc <- Pe.disc
 
+table(Pe.disc)
+   # low high 
+   # 498  216  
+
+boxplot(data$`Effective Lifetime`~ Pe.disc)
 ```
 
 

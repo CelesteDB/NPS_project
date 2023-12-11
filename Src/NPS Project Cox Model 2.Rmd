@@ -1,0 +1,528 @@
+---
+title: "NPS Project cox model"
+output: html_document
+date: "2023-12-05"
+---
+
+# Environment settings
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+library(readxl)
+library(fastDummies)
+```
+
+Load data
+```{r}
+data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+# data <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
+# test <- read_excel("../Dataset/TestSet.xlsx", col_names = TRUE)
+```
+
+
+# Dataset exploration
+
+Summary:
+```{r}
+summary(data)
+```
+Merge classes:
+```{r}
+data$Continent[which(data$Continent == "Africa")] <- "Others"
+data$Continent[which(data$Continent == "Oceania")] <- "Others"
+data$Continent[which(data$Continent == "Multinational")] <- "Others"
+
+
+data$Purpose[which(data$Purpose == "Navigation")] <- "Earth Observation"
+# data$Purpose[which(data$Purpose == "Space Science")] <- "Technology Development"
+```
+
+
+Factorize columns:
+```{r}
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+```
+Create dummy variables:
+```{r}
+# USERS : Levels: Civil Commercial Government Military
+
+dummy_data <- dummy_cols(data, select_columns = "Users", remove_first_dummy = TRUE)
+
+# PURPOSE : Levels: Communications Earth Observation Technology Development
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Purpose", remove_first_dummy = TRUE)
+
+
+# ORBIT : Levels: Elliptical GEO LEO MEO
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Orbit", remove_first_dummy = TRUE)
+
+
+# CONTINENT: Levels: Americas Asia Europe Others
+
+dummy_data <- dummy_cols(dummy_data, select_columns = "Continent", remove_first_dummy = TRUE)
+
+
+# dataset without Purpose, Users, Continent and Orbit
+# dummy_data <- dummy_data[,c(1:2,6:17,19:33)]
+```
+
+Shuffle observations
+```{r}
+set.seed(42)
+data <- data[sample(nrow(data)), ]
+```
+
+## Exploration of numerical variables:
+
+1) Mass: 
+```{r}
+plot(data$Mass[which(data$Mass < 100)], data$`Effective Lifetime`[which(data$Mass < 100)], xlab='Mass')
+hist(data$Mass[which(data$Mass < 100)], xlab='Mass', main='Histogram of Mass', prob = TRUE)
+
+summary(data$Mass)
+```
+
+Discretize mass
+```{r}
+Mass.disc <- cut(data$Mass, breaks=c(0, 500, Inf), labels=c("light", "heavy"))
+dummy_data$Mass.disc <- Mass.disc
+
+table(Mass.disc)
+# light heavy 
+#   440   134  
+
+boxplot(data$`Effective Lifetime`~ Mass.disc)
+```
+
+
+2) Period:
+```{r}
+plot(data$Period, data$`Effective Lifetime`, xlab='Period')
+hist(data$Period[which(data$Period < 2000)], xlab='Period', main='Histogram of Period', prob = TRUE)
+
+summary(data$Period)
+```
+
+Discretize period
+
+412 satellites with period < 500
+159 satellites with period between 500 and 2000
+3 satellites with period > 2000
+
+```{r}
+Per.disc <- cut(data$Period, breaks=c(0, 500, Inf), labels=c("short", "long"))
+dummy_data$Per.disc <- Per.disc
+
+table(Per.disc)
+# short  long 
+#   412   162 
+
+boxplot(data$`Effective Lifetime`~ Per.disc)
+```
+
+3) Inclination: 
+```{r}
+plot(data$Inclination, data$`Effective Lifetime`, xlab='Inclination')
+hist(data$Inclination, xlab='Inclination', main='Histogram of Inclination', prob = TRUE)
+
+summary(data$Inclination)
+```
+
+Discretize inclination
+```{r}
+Inc.disc <- cut(data$Inclination, breaks=c(0, 45, 180), labels=c("low", "high"))
+dummy_data$Inc.disc <- Inc.disc
+
+table(Inc.disc)
+#  low high 
+#  141  419 
+
+boxplot(data$`Effective Lifetime`~ Inc.disc)
+```
+
+4) Eccentricity:
+```{r}
+plot(data$Eccentricity, data$`Effective Lifetime`, xlab='Eccentricity')
+hist(data$Eccentricity, xlab='Eccentricity', main='Histogram of Eccentricity', prob = TRUE)
+
+summary(data$Eccentricity)
+```
+
+
+5) Apogee
+```{r}
+plot(data$Apogee, data$`Effective Lifetime`, xlab='Apogee')
+hist(data$Apogee, xlab='Apogee', main='Histogram of Apogee', prob = TRUE)
+
+summary(data$Apogee)
+```
+
+Discretize apogee
+```{r}
+Ap.disc <- cut(data$Apogee, breaks=c(0, 25000, Inf), labels=c("low", "high"))
+dummy_data$Ap.disc <- Ap.disc
+
+table(Ap.disc)
+ # low high 
+ # 443  131  
+
+boxplot(data$`Effective Lifetime`~ Ap.disc)
+```
+
+
+6) Perigee
+```{r}
+plot(data$Perigee, data$`Effective Lifetime`, xlab='Perigee')
+hist(data$Perigee, xlab='Perigee', main='Histogram of Perigee', prob = TRUE)
+
+summary(data$Perigee)
+```
+
+Discretize perigee
+```{r}
+Pe.disc <- cut(data$Perigee, breaks=c(0, 10000, Inf), labels=c("low","high"))
+dummy_data$Pe.disc <- Pe.disc
+
+table(Pe.disc)
+   # low high 
+   # 418  156  
+
+boxplot(data$`Effective Lifetime`~ Pe.disc)
+```
+
+7) Longitude of GEO:
+```{r}
+plot(data$`Longitude of GEO`, data$`Effective Lifetime`, xlab='`Longitude of GEO`')
+hist(data$`Longitude of GEO`, xlab='`Longitude of GEO`', main='Histogram of `Longitude of GEO`', prob = TRUE)
+
+summary(data$`Longitude of GEO`)
+```
+
+Correlation between variables:
+```{r}
+num <- c("Longitude of GEO", "Perigee", "Apogee", "Eccentricity", "Inclination", "Period", "Mass", "Effective Lifetime")
+data_num <- data[,num]
+
+cor(data_num)
+# Apogee - Period 0.97263559  
+# Perigee - Period 0.88954088 
+# Perigee - Inclination -0.82988349   
+# Apogee - Perigee 0.78883152     
+# Period - Inclination -0.73168416   
+# Apogee - Eccentricity 0.67998408  
+# Apogee - Inclination -0.65478644    
+
+pairs(data_num, pch = 19)
+```
+
+Recall that eccentricity is a function of perigee and apogee
+
+Longitude of geo is where the satellite is wrt greenwich meridian (all satellites are geosynchronous, ie they have same rotational speed as hearth) -> looks useless since all observations are above greenwich meridian 
+
+Period ^ 2 is proportional to a ^ 3, where a = (apogee + perigee)/2
+
+Type of orbit is a classification based on eccentricity and on period
+
+I would therefore keep only period, perigee and apogee(even if they're very correlated) and exclude type of orbit, as well as eccentricity since it summarizes perigee and apogee (and almost all observations have eccentricity = 0)
+
+We'll try to keep inclination and mass too
+
+So we keep: period, perigee, apogee, inclination, mass
+
+Note that due to collinearity we could only keep period, inclination, mass
+
+## Exploration of categorical covariates:
+
+1) Continent
+```{r}
+table(data$Continent)
+
+boxplot(data$`Effective Lifetime`~ Continent, data = data)
+
+fit.Continent <- survfit(Surv(`Effective Lifetime`,Status == 'retired') ~ Continent, data=data)
+ggsurvplot(fit.Continent, data = data,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata",
+           ggtheme = theme_bw(),
+           break.time.by=5,
+           title="Kaplan-Meier Curve for Satellites Survival by Continent")
+
+log_rank_test <- survdiff(Surv(`Effective Lifetime`, Status == 'retired') ~ Continent, data=data)
+log_rank_test #p = 4e-06
+
+hazard_ratio_am_asia <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
+hazard_ratio_am_asia #1.21855
+
+hazard_ratio_am_eur <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[3]/log_rank_test$exp[3])
+hazard_ratio_am_eur #1.791969
+
+hazard_ratio_am_others <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[4]/log_rank_test$exp[4])
+hazard_ratio_am_others #3.485299
+
+hazard_ratio_asia_eur <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[3]/log_rank_test$exp[3])
+hazard_ratio_asia_eur #1.470575
+
+hazard_ratio_asia_others <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[4]/log_rank_test$exp[4])
+hazard_ratio_asia_others #2.860202
+
+hazard_ratio_eur_others <- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[4]/log_rank_test$exp[4])
+hazard_ratio_eur_others #1.944955
+
+log_rank_test <- survdiff(Surv(`Effective Lifetime`, Status == 'retired') ~ Continent, data=data[which(data$Continent == "Asia" |data$Continent == "Americas"),])
+log_rank_test #p = 0.2
+```
+2) Users
+```{r}
+table(data$Users)
+
+boxplot(data$`Effective Lifetime`~ Users, data = data)
+
+fit.Users <- survfit(Surv(`Effective Lifetime`,Status == 'retired') ~ Users, data=data)
+ggsurvplot(fit.Users, data = data,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata",
+           ggtheme = theme_bw(), 
+           break.time.by=5,
+           title="Kaplan-Meier Curve for Satellites Survival by Users")
+
+log_rank_test <- survdiff(Surv(`Effective Lifetime`, Status == 'retired') ~ Users, data=data)
+log_rank_test #p < 2e-16 
+```
+
+3) Purpose
+```{r}
+table(data$Purpose)
+
+boxplot(data$`Effective Lifetime`~ Purpose, data = data)
+
+fit.Purpose <- survfit(Surv(`Effective Lifetime`,Status == 'retired') ~ Purpose, data=data)
+ggsurvplot(fit.Purpose, data = data,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata",
+           ggtheme = theme_bw(), 
+           break.time.by=5,
+           title="Kaplan-Meier Curve for Satellites Survival by Purpose")
+
+log_rank_test <- survdiff(Surv(`Effective Lifetime`, Status == 'retired') ~ Purpose, data=data)
+log_rank_test #p < 2e-16 
+```
+
+3) Orbit
+```{r}
+table(data$Orbit)
+
+boxplot(data$`Effective Lifetime`~ Orbit, data = data)
+
+fit.Orbit <- survfit(Surv(`Effective Lifetime`,Status == 'retired') ~ Orbit, data=data)
+ggsurvplot(fit.Orbit, data = data,
+           risk.table = TRUE, # Add risk table
+           risk.table.col = "strata",
+           ggtheme = theme_bw(), 
+           break.time.by=5,
+           title="Kaplan-Meier Curve for Satellites Survival by Orbit")
+
+log_rank_test <- survdiff(Surv(`Effective Lifetime`, Status == 'retired') ~ Orbit, data=data)
+log_rank_test #p < 2e-16 
+```
+
+
+# Cox Model
+
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+covariates <- c( "Perigee" ,"Apogee", "Inclination", "Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Purpose_Earth Observation", "Purpose_Technology Development", "Continent_Asia", "Continent_Europe", "Continent_Others")
+
+cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox1)
+
+test <- cox.zph(cox1)
+test
+```
+
+Remove Inclination:
+```{r}
+covariates <- c( "Perigee" ,"Apogee", "Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Purpose_Earth Observation", "Purpose_Technology Development", "Continent_Asia", "Continent_Europe", "Continent_Others")
+
+cox2 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox2)
+
+test <- cox.zph(cox2)
+test
+```
+
+
+
+
+Remove Apogee and Perigee:
+```{r}
+covariates <- c("Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Purpose_Earth Observation", "Purpose_Technology Development", "Continent_Asia", "Continent_Europe", "Continent_Others")
+
+
+cox3 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox3)
+
+test <- cox.zph(cox3)
+test
+```
+
+Remove Purpose_Earth Observation:
+```{r}
+covariates <- c("Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Purpose_Technology Development", "Continent_Asia", "Continent_Europe", "Continent_Others")
+
+
+cox4 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox4)
+
+test <- cox.zph(cox4)
+test
+```
+
+
+Remove Purpose_Technology Development:
+```{r}
+covariates <- c("Period", "Mass", "Users_Commercial", "Users_Government", "Users_Military", "Continent_Asia", "Continent_Europe", "Continent_Others")
+
+
+cox5 <- coxph(Surv(time,status == 'retired') ~ ., data = dummy_data[,covariates])
+summary(cox5)
+
+test <- cox.zph(cox5)
+test
+```
+
+Stratify wrt Users:
+```{r}
+cox6 <- coxph(Surv(time,status == 'retired') ~ Period + Mass + strata(Users) + Continent_Asia + Continent_Europe + Continent_Others, data = dummy_data)
+summary(cox6)
+
+test <- cox.zph(cox6)
+test
+```
+
+Discretize Period:
+```{r}
+cox7 <- coxph(Surv(time,status == 'retired') ~ Per.disc + Mass + strata(Users) + Continent_Asia + Continent_Europe + Continent_Others, data = dummy_data)
+summary(cox7)
+
+test <- cox.zph(cox7)
+test
+```
+
+Discretize Mass:
+```{r}
+cox8 <- coxph(Surv(time,status == 'retired') ~ Per.disc + Mass.disc + strata(Users) + Continent_Asia + Continent_Europe + Continent_Others, data = dummy_data)
+summary(cox8)
+
+test <- cox.zph(cox8)
+test
+```
+Remove Mass.disc:
+```{r}
+cox9 <- coxph(Surv(time,status == 'retired') ~ Per.disc + strata(Users) + Continent_Asia + Continent_Europe + Continent_Others, data = dummy_data)
+summary(cox9)
+
+test <- cox.zph(cox9)
+test
+```
+Remove Pers.disc:
+```{r}
+time <- dummy_data$`Effective Lifetime`
+status <- dummy_data$Status
+
+cox10 <- coxph(Surv(time,status == 'retired') ~ strata(Users) + Continent_Europe + Continent_Others, data = dummy_data)
+summary(cox10)
+
+test <- cox.zph(cox10)
+test
+```
+
+
+
+
+
+
+
+Anova, AIC and BIC to compare the 2 latest models:
+```{r}
+lr_test <- anova(cox9, cox10, test = "Chisq")
+print(lr_test)
+
+aic_cox9 <- AIC(cox9)
+aic_cox10 <- AIC(cox10)
+
+bic_cox9 <- BIC(cox9)
+bic_cox10 <- BIC(cox10)
+
+print(c("AIC cox9:", aic_cox9))
+print(c("AIC cox10:", aic_cox10))
+print(c("BIC cox9:", bic_cox9))
+print(c("BIC cox10:", bic_cox10))
+```
+
+
+Very similar, keep period: cox9
+
+
+
+Visualize HR:
+```{r}
+ggforest(cox9, data = dummy_data)
+```
+
+Residuals
+```{r}
+ggcoxdiagnostics(cox10, type = "martingale")
+ggcoxdiagnostics(cox10, type = "deviance")
+ggcoxdiagnostics(cox10, type = "scaledsch")
+```
+
+
+Predict Lifetime for each satellite with coxed function:
+```{r}
+coxed_cox9 <- coxed::coxed(cox9, newdata = dummy_data, method="npsf", bootstrap = TRUE, B=750)
+predicted_lifetime <- coxed_cox9$exp.dur
+
+sorted_lt <- predicted_lifetime[order(predicted_lifetime$exp.dur),]
+
+t <- seq(0, max(dummy_data$`Effective Lifetime`), length = length(sorted_lt$exp.dur))
+plot(t, sorted_lt$exp.dur, type = 'l', lwd = 2)
+lines(t, sorted_lt$lb)
+lines(t, sorted_lt$ub)
+```
+
+
+
+
