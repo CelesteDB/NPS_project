@@ -451,7 +451,7 @@ test
 ```
 Remove Mass.disc:
 ```{r}
-cox9 <- coxph(Surv(time,status == 'retired') ~ Per.disc + strata(Users) + Continent_Asia + Continent_Europe + Continent_Others, data = dummy_data)
+cox9 <- coxph(Surv(time,status == 'retired') ~ Per.disc + strata(Users)  + Continent_Europe + Continent_Others, data = dummy_data)
 summary(cox9)
 
 test <- cox.zph(cox9)
