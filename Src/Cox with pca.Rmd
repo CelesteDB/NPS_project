@@ -90,7 +90,7 @@ plot(scores1[, 1:2])
 abline(h=0, v=0, lty=2, col='grey')
 ```
 
-We try to choose 5 principant compontents
+We try to choose 5 principal components
 ```{r}
 scores1 <- data.frame(scores1)
 head(scores1)
