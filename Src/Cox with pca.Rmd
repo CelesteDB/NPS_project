@@ -1,0 +1,167 @@
+---
+title: "Cox with pca"
+output: html_document
+date: "2023-12-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+data <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
+
+data$Continent[which(data$Continent == "Africa")] <- "Others"
+data$Continent[which(data$Continent == "Oceania")] <- "Others"
+data$Continent[which(data$Continent == "Multinational")] <- "Others"
+data$Purpose[which(data$Purpose == "Navigation")] <- "Earth Observation"
+
+data$Country <- factor(data$Country, ordered = F)
+print('Country')
+table(data$Country)
+
+data$Continent <- factor(data$Continent, ordered = F)
+print('Continent')
+table(data$Continent)
+
+data$Users <- factor(data$Users, ordered = F)
+print('Users')
+table(data$Users)
+
+data$Purpose <- factor(data$Purpose, ordered = F)
+print('Purpose')
+table(data$Purpose)
+
+data$Orbit <- factor(data$Orbit, ordered = F)
+print('Class of Orbit')
+table(data$Orbit)
+
+data$Status <- factor(data$Status, ordered = F)
+print('Status')
+table(data$Status)
+
+set.seed(42)
+data <- data[sample(nrow(data)), ]
+
+```
+
+Prendo solo le covariate numeriche per fare la pca
+```{r}
+names(data)
+datanum <- data[,-c(1,2,3,4,5,13,12,14,15,16,18)]
+names(datanum)
+datanum <- scale(datanum)
+```
+PCA
+```{r}
+pc1 <- princomp(datanum, scores=T) 
+summary(pc1)
+
+# cumulative proportion of explained variance
+cumsum(pc1$sd^2)/sum(pc1$sd^2)
+
+
+screeplot(pc1, type = "lines", main = "Screeplot - PCA")
+# Explained variance
+layout(matrix(c(2,3,1,3),2,byrow=T))
+plot(pc1, las=2, main='Principal components', ylim=c(0,4.5e7))
+barplot(sapply(datanum,sd)^2, las=2, main='Original Variables', ylim=c(0,4.5e7), ylab='Variances')
+plot(cumsum(pc1$sd^2)/sum(pc1$sd^2), type='b', axes=F, xlab='number of components', 
+     ylab='contribution to the total variance', ylim=c(0,1))
+abline(h=1, col='blue')
+abline(h=0.8, lty=2, col='blue')
+box()
+axis(2,at=0:10/10,labels=0:10/10)
+axis(1,at=1:ncol(datanum),labels=1:ncol(datanum),las=2)
+
+# loadings (recall: coefficients of the linear combination of the original 
+#           variables that defines each principal component)
+load1 <- pc1$loadings
+load1
+# graphical representation of the loadings of the first THREE principal components
+par(mfrow = c(5,1))
+for(i in 1:5) barplot(load1[,i], ylim = c(-1, 1))
+```
+```{r}
+# scores
+scores1 <- pc1$scores
+plot(scores1[, 1:2])
+abline(h=0, v=0, lty=2, col='grey')
+```
+
+We try to choose 5 principant compontents
+```{r}
+scores1 <- data.frame(scores1)
+head(scores1)
+prin_comp5 <- scores1[,1:5]
+```
+
+
+MCA sulle variabili categoriche:
+```{r}
+#install.packages("FactoMineR")
+library(FactoMineR)
+datacat <- data[,c(1,2,3,4,5,13,12,14,15,16,18)]
+names(datacat)
+datacat <- datacat[,-c(1,2,6:10)]
+mca_res = MCA(datacat,ncp = 12, graph=FALSE)
+datacat=data.frame(datacat)
+
+library(factoextra)
+fviz_screeplot(mca_res,ncp = 12, addlabels = TRUE, ylim= c(0,45) ) 
+var <- get_mca_var(mca_res)
+var$contrib
+
+
+# Choose Number of Components
+k = 4 
+
+library(gridExtra)
+mca_res$var$coord
+rotated_loadings_mca = varimax(mca_res$var$coord[,1:k],normalize=TRUE)
+for (i in 1:k){
+  nam <- paste("plot_", i, sep = "")
+  temp_loadings_data = data.frame(label=rownames(mca_res$var$coord),loading=rotated_loadings_mca$loadings[,i])
+  plot_temp = ggplot(data=temp_loadings_data,aes(x=label,y=loading)) + geom_bar(stat="identity",fill="steelblue") + coord_flip() +  theme(axis.text.x = element_text(size=5)) + ylab("Category") + xlab("Rotated Loading") + ggtitle(paste("Component ",as.character(i)," Loadings",sep=""))
+  assign(nam, plot_temp)
+}
+grid.arrange(plot_1,plot_2,plot_3,plot_4,ncol=2,nrow=2)
+
+
+# 1. Concatenate MCA and PCA Scores and Z-score
+totscores = data.frame(PC_Comp = prin_comp5, MCA_Comp = mca_res$ind$coord[,1:4])
+#totscores = data.table(scale(as.matrix(totscores))) ???
+
+# concatenate with status and 
+library(dplyr)
+datapc <- bind_cols(totscores, data[,c(13,15)])
+
+```
+
+
+COX MODEL:
+
+```{r}
+time <- datapc$`Effective Lifetime`
+status <- datapc$Status
+
+#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
+#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
+#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4" )
+#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+#covariates <- c( "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+#covariates <- c(  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+covariates <- c(  "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+
+cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = datapc[,covariates])
+summary(cox1)
+
+test <- cox.zph(cox1)
+test # NOT VERIFIED
+
+```
+
+
+
