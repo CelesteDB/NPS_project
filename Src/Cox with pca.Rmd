@@ -131,9 +131,9 @@ grid.arrange(plot_1,plot_2,plot_3,plot_4,ncol=2,nrow=2)
 
 # 1. Concatenate MCA and PCA Scores and Z-score
 totscores = data.frame(PC_Comp = prin_comp5, MCA_Comp = mca_res$ind$coord[,1:4])
-#totscores = data.table(scale(as.matrix(totscores))) ???
+#totscores = data.table(scale(as.matrix(totscores))) ???????
 
-# concatenate with status and 
+# concatenate with status and effective lifetime
 library(dplyr)
 datapc <- bind_cols(totscores, data[,c(13,15)])
 
@@ -146,14 +146,14 @@ COX MODEL:
 time <- datapc$`Effective Lifetime`
 status <- datapc$Status
 
-#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
+covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
 #covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
 #covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4" )
 #covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
 #covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
 #covariates <- c( "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
 #covariates <- c(  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
-covariates <- c(  "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+#covariates <- c(  "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
 
 cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = datapc[,covariates])
 summary(cox1)
