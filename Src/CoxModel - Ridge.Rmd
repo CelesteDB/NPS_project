@@ -46,8 +46,8 @@ table(data$Status)
 ## Usiamo funzione coxph
 
 ```{r}
+covariates.num <- c( "Perigee" ,"Apogee", 'Eccentricity', "Inclination", "Period", "Mass")
 data.numeric <-as.matrix(data[,covariates.num])
-colnames(data.numeric) <-  c( "Perigee" ,"Apogee", 'Eccentricity', "Inclination", "Period", "Mass") 
 
 
 cor(data.numeric)
@@ -140,4 +140,113 @@ AIC = AIC(cox3Ridge)
 ```
 
 
-CONCLUSIONE: CON PENALIZZAZIONE NON SI OTTENGONO RISULATI MIGLIORI RISPETTO A QUELLI OTTENUTI CON COX MODEL BASE. CONCORDANCE MIGLIORA DI POCO, AIC LEGGERMENTE PIù BASSO MA I RESIDUI NON SONO BELLI.
+CONCLUSIONE: CON PENALIZZAZIONE NON SI OTTENGONO RISULATI MIGLIORI RISPETTO A QUELLI OTTENUTI CON COX MODEL BASE. CONCORDANCE MIGLIORA DI POCO, AIC LEGGERMENTE PIù ALTO MA I RESIDUI NON SONO BELLI.
+NON SI RIESCE AD OTTENRE CINCORDANCE MAGGIORE DI 0.75 FACENDO RISPETTARE ASSUNZIONI E AIC MILGIORE. 
+PENALIZZAZIONE BOCCIATA
+
+
+## Con logEccentricity
+
+```{r}
+i <- which(data$Eccentricity == 0)
+data$Eccentricity[i] = 1
+data$log.Eccentricity <- -log(data$Eccentricity)
+```
+
+
+```{r}
+covariates.num <- c( "Perigee" ,"Apogee", 'log.Eccentricity', "Inclination", "Period", "Mass")
+data.numeric <-as.matrix(data[,covariates.num])
+
+
+cor(data.numeric)
+
+pairs(data.numeric, pch = 19)
+
+# Alte correlazioni per: Apogeo - Perigeo, Inclination - Periego, Inclination - Apogeo, Periodo - Perigeo, Periodo Apogeo, Periodo - Inclination
+
+# Metto in ridge Apogeo, Perigeo, Inclination e Periodo per cercare di ridurre collinearità
+```
+
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+# Penalizzazione theta/2 
+cox1Ridge <- coxph(Surv(time,status == 'retired') ~ ridge(Apogee, Perigee, Inclination, Period, theta = 0.2) + Mass + log.Eccentricity + Users + Purpose + Continent + Orbit, data = data)
+
+
+summary(cox1Ridge)
+
+```
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox1Ridge)
+test
+```
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+# Penalizzazione theta/2 
+cox2Ridge <- coxph(Surv(time,status == 'retired') ~ ridge(Apogee, Perigee, Inclination, Period, theta = 0.2) + Mass + log.Eccentricity + Users + strata(Purpose) + Continent + Orbit, data = data)
+
+
+summary(cox2Ridge)
+
+```
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox2Ridge)
+test
+```
+Dopo aver trovato il modello finale, gioco con theta per massimizzare concordance
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+# Penalizzazione theta/2 
+cox3Ridge <- coxph(Surv(time,status == 'retired') ~ ridge(Apogee, Perigee, Inclination, Period, theta = 0.1) + Mass + log.Eccentricity + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+
+
+summary(cox3Ridge)
+
+```
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox3Ridge)
+test
+```
+
+```{r}
+ggcoxdiagnostics(cox3Ridge, type = "scaledsch")
+```
+
+Deviance Residuals:
+These residuals should be roughly symmetrically distributed about zero
+with a standard deviation of 1.
+
+-   Positive values correspond to individuals that "died too soon"
+    compared to expected survival times.
+-   Negative values correspond to individual that "lived too long".
+-   Very large or small values are outliers, which are poorly predicted
+    by the model.
+
+LE ASSUNZIONI SONO VERIFICATE MA I RESIDUI NON SONO BUONI.
+```{r}
+ggcoxdiagnostics(cox3Ridge, type = "deviance")
+
+```
+calcolo AIC
+```{r}
+AIC = AIC(cox3Ridge)
+
+```
+
+CONCLUSIONE: CON PENALIZZAZIONE NON SI OTTENGONO RISULATI MIGLIORI RISPETTO A QUELLI OTTENUTI CON COX MODEL BASE. CONCORDANCE MIGLIORA DI POCO, AIC LEGGERMENTE PIù ALTO MA I RESIDUI NON SONO BELLI.
