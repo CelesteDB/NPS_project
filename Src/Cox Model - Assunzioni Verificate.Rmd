@@ -1,0 +1,413 @@
+---
+title: "Cox Model"
+output: html_document
+date: "2023-12-18"
+---
+
+```{r}
+library(readxl)
+data <- read_excel("../dataset/TrainingSet.xlsx", col_names = TRUE)
+```
+
+Libraries:
+```{r,'error=FALSE', 'warning=FALSE'}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+Summary:
+```{r}
+summary(data)
+```
+Conto numero eventi per ogni covariata
+```{r}
+table(data$Users, data$Status)
+table(data$Purpose, data$Status)
+table(data$Orbit, data$Status)
+table(data$Continent, data$Status)
+
+
+```
+Dalla letteratura risulta che non ho abbastanza eventi per Navigation, Elliptical, Africa, Multinational, Oceania
+Simulation work has suggested that at least 10 events need to be observed for each covariate considered, and anything less will lead to problems.
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2376927/
+
+Rimuoviamo queste classi
+```{r}
+i <- which(data$Purpose == 'Navigation' | data$Orbit == 'Elliptical' | data$Continent == 'Africa' | data$Continent == 'Multinational' | data$Continent == 'Oceania' )
+data <- data[-i,]
+```
+
+A livello di continenti è un confronto tra America, Asia e Europa: Maggiori potenze economiche 
+
+Controlliamo
+```{r}
+table(data$Users, data$Status)
+table(data$Purpose, data$Status)
+table(data$Orbit, data$Status)
+table(data$Continent, data$Status)
+table(data$Status)
+```
+
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+covariates <- c( "Perigee" ,"Apogee", 'Eccentricity', "Inclination", "Period", "Mass", "Users", "Purpose", "Continent", "Orbit")
+
+cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = data[,covariates])
+summary(cox1)
+
+```
+
+Strata su Purpose
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox2 <- coxph(Surv(time,status == 'retired') ~ Perigee + Apogee + Eccentricity + Inclination + Period +
+                Mass + Users + strata(Purpose) + Continent + Orbit, data = data)
+summary(cox2)
+
+```
+
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox2)
+test
+```
+
+Strata su Orbit
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox3<- coxph(Surv(time,status == 'retired') ~ Perigee + Apogee + Eccentricity + Inclination + Period +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox3)
+
+```
+
+
+Rimuovo Perigeo
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox4<- coxph(Surv(time,status == 'retired') ~  Apogee + Eccentricity + Inclination + Period +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox4)
+
+```
+
+Rimuovo Periodo
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox5<- coxph(Surv(time,status == 'retired') ~  Apogee + Eccentricity + Inclination  +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox5)
+
+```
+
+Rimuovo Inclination
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox6<- coxph(Surv(time,status == 'retired') ~  Apogee + Eccentricity   +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox6)
+
+```
+Concordance: The concordance statistic C is defined as the fraction of
+concordant pairs, and is an estimate of P(xi > xj |yi > yj ), or equivalently P(yi > yj |xi > xj ).
+The first form might make more sense if, for instance, one took a list of elected officials, say, and
+looked back at local newspapers to see how many of the election contests had been predicted
+correctly (probablility the prediction is correct, given outcome).
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox6)
+test
+```
+Non sono super verificate per Apogeo ma ce ne facciamo una ragione...
+
+```{r}
+ggcoxdiagnostics(cox6, type = "scaledsch")
+```
+
+Martingale residuals 
+```{r}
+ggcoxdiagnostics(cox6, type = "martingale") # Diffcili da interpretare
+
+```
+Deviance Residuals
+Deviance Residuals:
+These residuals should be roughly symmetrically distributed about zero
+with a standard deviation of 1.
+
+-   Positive values correspond to individuals that "died too soon"
+    compared to expected survival times.
+-   Negative values correspond to individual that "lived too long".
+-   Very large or small values are outliers, which are poorly predicted
+    by the model.
+```{r}
+ggcoxdiagnostics(cox6, type = "deviance")
+
+```
+calcolo AIC
+```{r}
+AIC.cox6 = AIC(cox6)
+```
+
+## Provo a trasformare Eccentricità
+
+Certainly, in certain scientific and engineering contexts, the logarithm of the eccentricity of an orbit is often used. In celestial mechanics, particularly when dealing with orbits, the eccentricity of an ellipse is a parameter that describes how much the orbit deviates from being a perfect circle.
+
+Trasformo Eccentricità per avere un miglior grafico dei residui
+```{r}
+i <- which(data$Eccentricity == 0)
+data$Eccentricity[i] = 1
+data$log.Eccentricity <- -log(data$Eccentricity)
+```
+
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+covariates <- c( "Perigee" ,"Apogee", 'log.Eccentricity', "Inclination", "Period", "Mass", "Users", "Purpose", "Continent", "Orbit")
+
+cox1bis <- coxph(Surv(time,status == 'retired') ~ ., data = data[,covariates])
+summary(cox1bis)
+
+```
+
+Rimuovo Perigee
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+covariates <- c("Apogee", 'log.Eccentricity', "Inclination", "Period", "Mass", "Users", "Purpose", "Continent", "Orbit")
+
+cox2bis <- coxph(Surv(time,status == 'retired') ~ ., data = data[,covariates])
+summary(cox2bis)
+
+```
+
+Strata su purpose
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox2bis <- coxph(Surv(time,status == 'retired') ~  Apogee + log.Eccentricity + Inclination + Period +
+                Mass + Users + strata(Purpose) + Continent + Orbit, data = data)
+summary(cox2bis)
+
+```
+
+Rimuovo Inclination
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox3bis <- coxph(Surv(time,status == 'retired') ~  Apogee + log.Eccentricity  + Period +
+                Mass + Users + strata(Purpose) + Continent + Orbit, data = data)
+summary(cox3bis)
+
+```
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox3bis)
+test
+```
+
+Strata su orbit
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox4bis <- coxph(Surv(time,status == 'retired') ~  Apogee + log.Eccentricity  + Period +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox4bis)
+
+```
+
+
+Rimuovo Periodo
+
+```{r}
+time <- data$`Effective Lifetime`
+status <- data$Status
+
+cox5bis <- coxph(Surv(time,status == 'retired') ~  Apogee + log.Eccentricity   +
+                Mass + Users + strata(Purpose) + Continent + strata(Orbit), data = data)
+summary(cox5bis)
+
+```
+
+Verifico Assunzioni
+```{r}
+test <- cox.zph(cox5bis)
+test
+```
+Tutte le assunzioni sono verificate
+Plot dei residui
+
+```{r}
+ggcoxdiagnostics(cox5bis, type = "scaledsch")
+```
+
+Martingale residuals Difficili da interpretare
+```{r}
+ggcoxdiagnostics(cox5bis, type = "martingale")
+
+```
+Deviance Residuals:
+These residuals should be roughly symmetrically distributed about zero
+with a standard deviation of 1.
+
+-   Positive values correspond to individuals that "died too soon"
+    compared to expected survival times.
+-   Negative values correspond to individual that "lived too long".
+-   Very large or small values are outliers, which are poorly predicted
+    by the model.
+    
+Direi ok!
+```{r}
+ggcoxdiagnostics(cox5bis, type = "deviance")
+
+```
+
+calcolo AIC
+```{r}
+AIC.cox5bis = AIC(cox5bis)
+```
+
+Guardando l'AIC è meglio trasformare l'eccentricità.
+
+## Previsione
+
+```{r}
+library(coxed)
+
+ed1 <- coxed(cox5bis, method="npsf")
+predlife=ed1$exp.dur
+#mean and median of the predicted durations:
+ed1$mean
+ed1$median
+
+# PLOT: The estimated cumulative baseline hazard function and survivor function
+baseline <- gather(ed1$baseline.functions, cbh, survivor, key="survivefunction", value="value")
+ggplot(baseline, aes(x=time, y=value)) +
+     geom_line() +
+     xlab("Time") +
+     ylab("Function") +
+     facet_wrap( ~ survivefunction, scales = "free")
+```
+PREDICTION
+
+Preparazione test set
+```{r}
+test.set <- read_excel("../test.setset/TestSet.xlsx", col_names = TRUE)
+```
+
+
+```{r}
+i <- which(test.set$Purpose == 'Navigation' | test.set$Orbit == 'Elliptical' | test.set$Continent == 'Africa' | test.set$Continent == 'Multinational' | test.set$Continent == 'Oceania' )
+test.set <- test.set[-i,]
+```
+
+```{r}
+table(test.set$Users, test.set$Status)
+table(test.set$Purpose, test.set$Status)
+table(test.set$Orbit, test.set$Status)
+table(test.set$Continent, test.set$Status)
+table(test.set$Status)
+```
+Trasformo Eccentricità per avere un miglior grafico dei residui
+```{r}
+i <- which(test.set$Eccentricity == 0)
+test.set$Eccentricity[i] = 1
+test.set$log.Eccentricity <- -log(test.set$Eccentricity)
+```
+
+
+Coxed non funziona con strata data --> calcolare a mano
+
+Per ottenere baseline hazard dei nuovi dati
+```{r}
+bashaz.train <- basehaz(cox5bis)
+bashaz.train
+table(bashaz.train$strata) # strataa su orbit e Purpose --> 8 combinazioni in teoria
+```
+
+
+```{r}
+bashaz.test <- basehaz(cox5bis, test.set, centered=TRUE)
+bashaz.test
+table(bashaz.test$strata)
+# technology DEvelopment, Geo non esiste  
+table(test.set$Orbit, test.set$Purpose)
+# technology DEvelopment, Geo non esiste neanche nel test set -> buono 
+
+```
+strata = 1 --> hazard riferita alla prima osservazione
+
+
+```{r}
+## S3 method for class 'coxph'
+expLP = predict(cox5bis, test.set,
+#type=c("lp", "risk", "expected", "terms", "survival"),
+type = 'risk',
+reference=c("strata", "sample", "zero"))
+```
+
+Prediction
+```{r}
+# a mano: Idea imprlementare quello che fa Coxed (Incluso bootstrap) in modo da poter usare strata
+# Qui il link di coxed : https://github.com/jkropko/coxed/blob/master/R/coxed.R
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+Paper 3: 
+Grant S, Chen YQ, May S. Performance of goodness-of-fit tests for the Cox proportional hazards model with time-varying covariates. Lifetime Data Anal. 2014 Jul;20(3):355-68. doi: 10.1007/s10985-013-9277-1. Epub 2013 Aug 9. PMID: 23925703; PMCID: PMC3918489.
+
+Paper 5:
+Kropko, J. and Harden, J. J. (2020) “Beyond the Hazard Ratio: Generating Expected Durations from the Cox Proportional Hazards Model,” British Journal of Political Science. Cambridge University Press, 50(1), pp. 303–320. doi: 10.1017/S000712341700045X.
