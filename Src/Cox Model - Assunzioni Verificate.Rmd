@@ -323,7 +323,7 @@ PREDICTION
 
 Preparazione test set
 ```{r}
-test.set <- read_excel("../test.setset/TestSet.xlsx", col_names = TRUE)
+test.set <- read_excel("../Dataset/TestSet.xlsx", col_names = TRUE)
 ```
 
 
@@ -353,7 +353,7 @@ Per ottenere baseline hazard dei nuovi dati
 ```{r}
 bashaz.train <- basehaz(cox5bis)
 bashaz.train
-table(bashaz.train$strata) # strataa su orbit e Purpose --> 8 combinazioni in teoria
+table(bashaz.train$strata) # strata su orbit e Purpose --> 8 combinazioni in teoria
 ```
 
 
@@ -384,30 +384,44 @@ Prediction
 ```
 
 
+```{r}
+coxed <- coxed::coxed(cox5bis, newdata = test.set, method="npsf", bootstrap = TRUE, B=750)
+predicted_lifetime <- coxed$exp.dur
+```
 
 
 
+```{r}
+id <- which(test.set$Status == 'retired')
+diff <- predicted_lifetime$exp.dur[id] - test.set$`Effective Lifetime`[id]
+plot(diff)
+
+```
+```{r}
+sqrt(sum(diff^2)/length(diff))
+mean(diff)
+median(diff)
+#mean(test.set$`Effective Lifetime`[id])
+```
+```{r}
 
 
+# Calculate Concordance Index
+c_index <- survConcordance(Surv(test.set$`Effective Lifetime`, predicted_lifetime$exp.dur) ~ predicted_lifetime$exp.dur)
+print(paste("Concordance Index: ", c_index$concordance))
 
+```
+```{r}
+diff <- predicted_lifetime$exp.dur[id] - test.set$`Expected Lifetime`[id]
+plot(diff)
+```
 
+```{r}
+sorted_lt <- predicted_lifetime[order(predicted_lifetime$exp.dur),]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+t <- seq(0, max(test.set$`Effective Lifetime`), length = length(sorted_lt$exp.dur))
+plot(t, sorted_lt$exp.dur, type = 'l', lwd = 2)
+lines(t, sorted_lt$lb)
+lines(t, sorted_lt$ub)
+```
 
