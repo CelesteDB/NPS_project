@@ -12,10 +12,21 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 data <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
 
-data$Continent[which(data$Continent == "Africa")] <- "Others"
-data$Continent[which(data$Continent == "Oceania")] <- "Others"
-data$Continent[which(data$Continent == "Multinational")] <- "Others"
-data$Purpose[which(data$Purpose == "Navigation")] <- "Earth Observation"
+#Dalla letteratura risulta che non ho abbastanza eventi per Navigation, Elliptical, Africa, Multinational, Oceania
+#Simulation work has suggested that at least 10 events need to be observed for each covariate considered, and anything less #will lead to problems.
+i <- which(data$Purpose == 'Navigation' | data$Orbit == 'Elliptical' | data$Continent == 'Africa' | data$Continent == 'Multinational' | data$Continent == 'Oceania' )
+data <- data[-i,]
+
+table(data$Users, data$Status)
+table(data$Purpose, data$Status)
+table(data$Orbit, data$Status)
+table(data$Continent, data$Status)
+table(data$Status)
+
+#data$Continent[which(data$Continent == "Africa")] <- "Others"
+#data$Continent[which(data$Continent == "Oceania")] <- "Others"
+#data$Continent[which(data$Continent == "Multinational")] <- "Others"
+#data$Purpose[which(data$Purpose == "Navigation")] <- "Earth Observation"
 
 data$Country <- factor(data$Country, ordered = F)
 print('Country')
@@ -115,7 +126,7 @@ var$contrib
 
 
 # Choose Number of Components
-k = 4 
+k = 4 #either with k=3 or k=4 we obtain the same result in the cox model
 
 library(gridExtra)
 mca_res$var$coord
@@ -126,6 +137,7 @@ for (i in 1:k){
   plot_temp = ggplot(data=temp_loadings_data,aes(x=label,y=loading)) + geom_bar(stat="identity",fill="steelblue") + coord_flip() +  theme(axis.text.x = element_text(size=5)) + ylab("Category") + xlab("Rotated Loading") + ggtitle(paste("Component ",as.character(i)," Loadings",sep=""))
   assign(nam, plot_temp)
 }
+#grid.arrange(plot_1,plot_2,plot_3,ncol=2,nrow=2)
 grid.arrange(plot_1,plot_2,plot_3,plot_4,ncol=2,nrow=2)
 
 
@@ -146,17 +158,14 @@ COX MODEL:
 time <- datapc$`Effective Lifetime`
 status <- datapc$Status
 
-covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
-#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
-#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4" )
-#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
-#covariates <- c("PC_Comp.Comp.2", "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
-#covariates <- c( "PC_Comp.Comp.4",  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
-#covariates <- c(  "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
-#covariates <- c(  "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" )
+#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3" , "MCA_Comp.Dim.4"   )
+#covariates <- c( "PC_Comp.Comp.1","PC_Comp.Comp.2", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3"    )
+covariates <- c( "PC_Comp.Comp.1", "PC_Comp.Comp.3", "PC_Comp.Comp.4", "PC_Comp.Comp.5", "MCA_Comp.Dim.1", "MCA_Comp.Dim.2",  "MCA_Comp.Dim.3"    )
+
 
 cox1 <- coxph(Surv(time,status == 'retired') ~ ., data = datapc[,covariates])
 summary(cox1)
+
 
 test <- cox.zph(cox1)
 test # NOT VERIFIED
