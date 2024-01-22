@@ -347,7 +347,6 @@ test.set$log.Eccentricity <- -log(test.set$Eccentricity)
 ```
 
 
-Coxed non funziona con strata data --> calcolare a mano
 
 Per ottenere baseline hazard dei nuovi dati
 ```{r}
