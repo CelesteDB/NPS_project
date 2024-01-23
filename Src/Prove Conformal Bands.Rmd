@@ -107,6 +107,9 @@ if (!require("devtools")){
 devtools::install_github("zhimeir/cfsurvival")
 ```
 
+```{r}
+library('cfsurvival')
+```
 
 ```{r}
 covariates <-c('Apogee','log.Eccentricity','Mass','Users', 'Purpose', 'Continent', 'Orbit' )
@@ -134,25 +137,85 @@ censored_T = data$`Effective Lifetime`
 
 ```{r}
 library('cfsurvival')
+```
+
+heuristic way to mitigate this issue is to discard units with small values of C. Consider
+a threshold c0, and extract the subpopulation on which C ≥ c0.
+
+```{r}
+C.anni <- C/365
+C.anni
+
+```
+
+```{r}
 # Running cfsurvival with c0 = 10
-c0 <- 10
-pr_list <- rep(0.5, n)
+c0 <- 8  ## coverage corretto 
+pr_list <- rep(0.5, n)  ## provare a cambiare prior 
 pr_new_list <- rep(0.5, n_test)
-res <- cfsurv(x = X_test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
+res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
              Xtrain = X.train, C = C, event = Event, time = censored_T, 
-             alpha = 0.1) #, model = "aft")
+             alpha = 0.1) #, model = "aft")  ## il metodo non è non parametrico!!!
+
 
 # Examine the result
-cat(sprintf("The coverage is %.3f.\n", mean(res <= T_test)))
+T <- test.set$`Effective Lifetime`
+
+cat(sprintf("The coverage is %.3f.\n", mean(res <= T)))
+```
+
+```{r}
+# Assumiamo che 'res' sia l'output della funzione cfsurv
+
+lower_bound <- res
+upper_bound <- +Inf 
+
+# Creiamo un dataframe con i limiti inferiori e superiori
+df <- data.frame(Index = 1:length(lower_bound), LowerBound = lower_bound, UpperBound = upper_bound)
+
+
+
 ```
 
 
 
 
+```{r}
+# Carichiamo il pacchetto RColorBrewer se non è già installato
+if (!require("RColorBrewer")){
+    install.packages("RColorBrewer")
+}
+library('RColorBrewer')
+```
 
 
+```{r}
+# Creiamo una palette di colori pastello
+pastel_colors <- brewer.pal(12, "Paired")
+barplot(rep(1,9), col = pastel_colors, space = 0, border = NA, ylab = "", xlab = "", xaxt = 'n', yaxt = 'n')
+```
 
 
+```{r}
+T <- test.set$`Effective Lifetime`
+if (!require(dplyr)) {
+  install.packages("dplyr")
+  library(dplyr)
+}
+set.seed(10)
+# Seleziona casualmente 10 righe dal dataframe
+df_sample <- df %>% sample_n(10)
+T_sample <- sample(T, 10)
 
-
+# Crea il grafico con il dataframe campione
+ggplot(data=df_sample, aes(x=Index, y=LowerBound)) + 
+  geom_segment(aes(xend=Index, yend=Inf), color=pastel_colors[1], size = 3) +
+  geom_point(aes(y = T_sample),size=2.5, color = pastel_colors[2]) +
+  coord_flip() +
+  labs(x = "Index", y = "Confidence Interval and Effective Lifetime",
+       title = "Conformal Prediction Interval and Effective Lifetime for Survival Time") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), 
+        text = element_text(size=12, family="sans", color="black"))
+```
 
