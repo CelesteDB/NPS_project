@@ -130,6 +130,8 @@ C[id]= data$`Final Date`[234] - data$`Launch Date`[id] # Censoring times
 
 censored_T = data$`Effective Lifetime`
 
+T_test = test.set$`Effective Lifetime` #(?)
+
 ```
 
 ```{r}
@@ -140,7 +142,7 @@ pr_list <- rep(0.5, n)
 pr_new_list <- rep(0.5, n_test)
 res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
              Xtrain = X.train, C = C, event = Event, time = censored_T, 
-             alpha = 0.1) #, model = "aft")
+             alpha = 0.1) #, model = "aft") #the default model is Cox
 
 # Examine the result
 cat(sprintf("The coverage is %.3f.\n", mean(res <= T_test)))
