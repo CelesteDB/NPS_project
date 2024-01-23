@@ -93,8 +93,8 @@ test.set$log.Eccentricity <- -log(test.set$Eccentricity)
 ```
 
 ```{r}
-coxed <- coxed::coxed(cox, newdata = test.set, method="npsf", bootstrap = TRUE, B=750)
-predicted_lifetime <- coxed$exp.dur
+modello <- coxed::coxed(cox, newdata = test.set, method="npsf", bootstrap = TRUE, B=750)
+predicted_lifetime <- modello$exp.dur
 ```
 
 
@@ -125,8 +125,11 @@ data$`Launch Date` <- as.POSIXct(data$`Launch Date`)
 data$`Final Date`<- as.Date(data$`Final Date`)
 data$`Final Date` <- as.POSIXct(data$`Final Date`)
 
-C[id]= data$`Final Date`[234] - data$`Launch Date`[id] # Censoring times 
-#C[id]= as.matrix(data$`Final Date`[234], nrow=length(id), cnol=1) - data$`Launch Date`[id] # Censoring times 
+fine_analisi = rep(data$`Final Date`[234], times=length(id))
+fine_analisi<- as.Date(fine_analisi)
+fine_analisi <- as.POSIXct(fine_analisi)
+
+C[id] = round(as.numeric(fine_analisi - data$`Launch Date`[id])/365, digit = 2)
 
 censored_T = data$`Effective Lifetime`
 
@@ -134,22 +137,170 @@ T_test = test.set$`Effective Lifetime` #(?)
 
 ```
 
+we generate the LPB (lower predictive bounds) on the min{T,c0} as the alpha-th quantile from an estimated Cox model
 ```{r}
 library('cfsurvival')
 # Running cfsurvival with c0 = 10
-c0 <- 10
+c0 <- 30
 pr_list <- rep(0.5, n)
 pr_new_list <- rep(0.5, n_test)
 res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
              Xtrain = X.train, C = C, event = Event, time = censored_T, 
-             alpha = 0.1) #, model = "aft") #the default model is Cox
+             alpha = 0.05, model = "aft") #the default model is Cox
 
 # Examine the result
-cat(sprintf("The coverage is %.3f.\n", mean(res <= T_test)))
+#cat(sprintf("The coverage is %.3f.\n", mean(res <= T_test)))
+cat(sprintf("The coverage is %.3f.\n", mean(res <= predicted_lifetime)))
+
+plot(res)
+
+
+
 ```
 
 
 
+
+function for the automatic selection of c0
+```{r}
+selection_c <- function(X,C,event,time,alpha,
+                        c_ref,weight_ref,
+                        model="aft",
+                        type="quantile",
+                        dist="weibull"){
+  
+  ## Get the dimension of the input
+  if(is.null(dim(X))){
+    n <- length(X)
+    p <- 1
+  }else{
+    n <- dim(X)[1]
+    p <- dim(X)[2]
+  }
+  xnames <- paste0("X",1:p)
+  data <- cbind(X,C,event,time)
+  data <- data.frame(data)
+  colnames(data) <- c(xnames,"C","event","censored_T")
+
+  ## Evaluate the average bound for each candidate c
+  bnd_ref <- c()
+  for(i in 1:length(c_ref)){
+  bnd <- evaluate_length(c_ref[i],alpha=alpha,n=n,p=p,model,
+                        data=data,weight=weight_ref[,i],xnames=xnames,
+                        type=type,dist=dist)
+  bnd_ref <- c(bnd_ref,bnd)
+  }
+  c_opt <- c_ref[which.max(bnd_ref)]
+  return(list(c_opt=c_opt,c_ref=c_ref,bnd_ref=bnd_ref))
+
+}
+
+evaluate_length <- function(c,alpha,n,p,
+                            model,
+                            data,
+                            weight,
+                            xnames,
+                            type = "quantile",
+                            dist = "weibull",
+                            seed = 2020){
+  ## Determine the fitting set, the calibration set and the test set
+  set.seed(seed)
+  I_fit <- sample(1:n,floor(n/2),replace=FALSE)
+  I_calib <- sample((1:n)[-I_fit],floor(n/4),replace=FALSE)
+  I_test <- (1:n)[-c(I_fit,I_calib)]
+  
+  data_fit <- data[I_fit,]
+  data_calib <- data[I_calib,]
+  data_test <- data[I_test,]
+  
+  if(is.null(weight)){
+    res <- censoring_prob(fit=data_fit,calib=data_calib,test=data_test,
+                          xnames=xnames,c)
+    pr_calib <- res$pr_calib
+    pr_new <- res$pr_new
+    weight_calib <- 1/pr_calib
+    weight_new <- 1/pr_new
+  }else{
+    weight_calib <- weight[I_calib]
+    weight_new <- weight[I_test]
+  }
+  x <- data_test[,colnames(data_test)%in%xnames]
+  
+  if(model == "aft"){
+    bnd <- aft_based(x,c,alpha,
+                     data_fit,
+                     data_calib,
+                     dist,
+                     weight_calib,
+                     weight_new)
+   }
+  
+  if(model == "randomforest"){
+    bnd <- rf_based(x,c,alpha,
+                    data_fit,
+                    data_calib,
+                    weight_calib,
+                    weight_new)
+  }
+  
+  if(model == "pow"){
+    bnd <- pow_based(x,c,alpha,
+                    data_fit,
+                    data_calib,
+                    weight_calib,
+                    weight_new)
+  }
+
+  if(model == "portnoy"){
+    bnd <- portnoy_based(x,c,alpha,
+                        data_fit,
+                        data_calib,
+                        weight_calib,
+                        weight_new)
+  }
+
+  if(model == "PengHuang"){
+    bnd <- ph_based(x,c,alpha,
+                   data_fit,
+                   data_calib,
+                   weight_calib,
+                   weight_new)
+  }
+
+  return(mean(bnd))
+}
+```
+
+
+```{r}
+#selection of c0
+n_train=dim(data)[1]
+I_fit <- sample(1:n,n_train,replace = FALSE)
+data_fit <- data[I_fit,]
+ref_length <- 10
+c_list <- seq(min(C[I_fit]),max(C[I_fit]),length=ref_length)
+
+
+Event.test <- ifelse(test.set$Status == 'censored', FALSE, TRUE )
+C.test = test.set$`Effective Lifetime`
+id=which(test.set$Status=="retired")
+
+test.set$`Launch Date` <- as.Date(test.set$`Launch Date`)
+test.set$`Launch Date`<- as.POSIXct(test.set$`Launch Date`)
+test.set$`Final Date`<- as.Date(test.set$`Final Date`)
+test.set$`Final Date` <- as.POSIXct(test.set$`Final Date`)
+
+fine_analisi = rep(test.set$`Final Date`[234], times=length(id))
+fine_analisi<- as.Date(fine_analisi)
+fine_analisi <- as.POSIXct(fine_analisi)
+
+C.test[id] = round(as.numeric(fine_analisi - test.set$`Final Date`[id])/365, digit = 2)
+
+
+
+
+sel = selection_c(test.set, C.test, Event.test, predicted_lifetime$exp.dur, 0.05, weight_ref=NULL, c_ref=c_list)
+```
 
 
 
