@@ -8,37 +8,91 @@ date: "2023-11-28"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r}
-#install.packages("openxlsx")
-#library("openxlsx")
+
+library("openxlsx")
 library(readxl)
-data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+data<-  read_excel("../Dataset/TestSet.xlsx", col_names = TRUE)
+predicted_lifetime = read.table("predicted_lifetime.txt", header = TRUE)
 
 
-data=data[sample(nrow(data)),] 
-head(data)
-dim(data)
 
-#tolgo le osservazioni senza expected lifetime
-id=which(is.na(data$`Expected Lifetime`))
-data=data[-id,]
 
-B = 1e3
-seed = 2611199
 ```
 
-PERMUTATIONAL ONE-WAY ANOVA EXP-LIFETIME -\> CONTINENT
 
 ```{r}
+library(readxl)
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggplot2)
+library(knitr)
+library(broom)
+library(tidyr)
+```
+
+
+modifico il dataset come in "Cox Model - Assunzioni Verificate.Rmd"
+
+
+
+```{r}
+i <- which(data$Purpose == 'Navigation' | data$Orbit == 'Elliptical' | data$Continent == 'Africa' | data$Continent == 'Multinational' | data$Continent == 'Oceania' )
+data <- data[-i,]
+```
+
+
+```{r}
+table(data$Users, data$Status)
+table(data$Purpose, data$Status)
+table(data$Orbit, data$Status)
+table(data$Continent, data$Status)
+table(data$Status)
+```
+
+```{r}
+i <- which(data$Eccentricity == 0)
+data$Eccentricity[i] = 1
+data$log.Eccentricity <- -log(data$Eccentricity)
+```
+
+
+
+riguardo le table a dataset ultimato
+
+
+```{r}
+table(data$Users, data$Status)
+table(data$Purpose, data$Status)
+table(data$Orbit, data$Status)
+table(data$Continent, data$Status)
+table(data$Status)
+```
+I civili sono solo 2 quindi o li incorporo con qualcun altro
+Space science e technology development sempre pochi==>potrei incorporare space science con earth observation e technology development con communications?
+
+
+
+
+TEST: SIAMO NEL CASO DI PAIRED DATA ==> SIA NOI CHE LE AGENZIE SPAZIALI MISURIAMO LA STESSA QUANTITà: il tempo di vita atteso
+PERMUTATIONAL ONE-WAY ANOVA PRED - EXP-LIFETIME -\> CONTINENT
+
+```{r}
+B = 1000
+predlife = predicted_lifetime$exp.dur
 explife = data$`Expected Lifetime`
+diff = predlife-explife
 continent = as.factor(data$Continent)
+
 g = nlevels(continent)
 n = dim(data)[1]
 
-plot(continent, explife, xlab='continent',col=rainbow(g),main='Original Data')
+plot(continent, diff, xlab='continent',col=rainbow(g),main='Original Data')
 
 
-fit_c <- aov(explife ~ continent)
+fit_c <- aov(diff ~ continent)
 summary(fit_c)
 
 T0 <- summary(fit_c)[[1]][1,4]  # extract the test statistic
@@ -50,8 +104,8 @@ T_stat <- numeric(B)
 for(perm in 1:B){
   # Permutation:
   permutation <- sample(1:n)
-  explife_perm <- explife[permutation]
-  fit_perm <- aov(explife_perm ~ continent)
+  diff_perm <- diff[permutation]
+  fit_perm <- aov(diff_perm ~ continent)
   
   # Test statistic:
   T_stat[perm] <- summary(fit_perm)[[1]][1,4]
@@ -66,12 +120,11 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0.006
+p_val #0.000
 ```
+Il continente è un fattore significativo ==>c'è evidenza statistica per permetterci diaffermare che  alcuni continenti mentono in media più di altri
 
-There is significant difference on the expected lifetime between continents.
-
-PERMUTATIONAL ONE-WAY ANOVA EXP-LIFETIME -\> PURPOSE
+PERMUTATIONAL ONE-WAY ANOVA predicted- expected -\> PURPOSE
 
 ```{r}
 
@@ -79,10 +132,10 @@ purpose = as.factor(data$Purpose)
 g = nlevels(purpose)
 n = dim(data)[1]
 
-plot(purpose, explife, xlab='purpose',col=rainbow(g),main='Original Data')
+plot(purpose, diff, xlab='purpose',col=rainbow(g),main='Original Data')
 
 
-fit_p <- aov(explife ~ purpose)
+fit_p <- aov(diff ~ purpose)
 summary(fit_p)
 
 T0 <- summary(fit_p)[[1]][1,4]  # extract the test statistic
@@ -94,8 +147,8 @@ T_stat <- numeric(B)
 for(perm in 1:B){
   # Permutation:
   permutation <- sample(1:n)
-  explife_perm <- explife[permutation]
-  fit_perm <- aov(explife_perm ~ purpose)
+  diff_perm <- diff[permutation]
+  fit_perm <- aov(diff_perm ~ purpose)
   
   # Test statistic:
   T_stat[perm] <- summary(fit_perm)[[1]][1,4]
@@ -110,11 +163,11 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0
+p_val #0.04
 
 ```
 
-There is significant difference on the expected lifetime between purposes.
+Like continents: there is evidence but we have to pay attention on the dimension of the sample
 
 PERMUTATIONAL ONE-WAY ANOVA EXP-LIFETIME -\> USERS
 
@@ -124,10 +177,10 @@ users = as.factor(data$Users)
 g = nlevels(users)
 n = dim(data)[1]
 
-plot(users, explife, xlab='users',col=rainbow(g),main='Original Data')
+plot(users, diff, xlab='users',col=rainbow(g),main='Original Data')
 
 
-fit_u <- aov(explife ~ users)
+fit_u <- aov(diff ~ users)
 summary(fit_u)
 
 T0 <- summary(fit_u)[[1]][1,4]  # extract the test statistic
@@ -139,8 +192,8 @@ T_stat <- numeric(B)
 for(perm in 1:B){
   # Permutation:
   permutation <- sample(1:n)
-  explife_perm <- explife[permutation]
-  fit_perm <- aov(explife_perm ~ users)
+  diff_perm <- diff[permutation]
+  fit_perm <- aov(diff_perm ~ users)
   
   # Test statistic:
   T_stat[perm] <- summary(fit_perm)[[1]][1,4]
@@ -158,17 +211,16 @@ p_val <- sum(T_stat>=T0)/B
 p_val #0
 
 ```
+Idem
 
-There is significant difference on the expected lifetime between users.
-
-PERMUTATIONAL TWO-WAYS ANOVA EXP-LIFETIME -\> CONTINENT-PURPOSE
+PERMUTATIONAL TWO-WAYS ANOVA PREDLIFETIME - EXPLIFETIME -\> CONTINENT-PURPOSE
 
 ```{r}
-summary.aov(aov(explife ~ continent + purpose + continent:purpose)) 
-T0_cp <- summary.aov(aov(explife ~ continent + purpose + continent:purpose))[[1]][3,4]
+summary.aov(aov(diff ~ continent + purpose + continent:purpose)) 
+T0_cp <- summary.aov(aov(diff ~ continent + purpose + continent:purpose))[[1]][3,4]
 T0_cp
 
-aov.H0cp <- aov(explife ~ continent + purpose) #reduced model 
+aov.H0cp <- aov(diff ~ continent + purpose) #reduced model 
 aov.H0cp
 residuals.H0cp <- aov.H0cp$residuals
 
@@ -177,23 +229,23 @@ T_cp<- numeric(B)
 for(perm in 1:B){
   permutation <- sample(n)
   residuals.H0cp <- residuals.H0cp[permutation]
-  explife.perm.H0cp <- aov.H0cp$fitted + residuals.H0cp
-  T_cp[perm] <- summary.aov(aov(explife.perm.H0cp ~ continent + purpose + continent:purpose))[[1]][3,4]
+  diff.perm.H0cp <- aov.H0cp$fitted + residuals.H0cp
+  T_cp[perm] <- summary.aov(aov(diff.perm.H0cp ~ continent + purpose + continent:purpose))[[1]][3,4]
 }
 
-sum(T_cp >= T0_cp)/B
+sum(T_cp >= T0_cp)/B #0
 ```
 
-The interaction between continent and purpose is significative at a confidence level of alpha=0.05 (p-value = 0.021)
+The interaction between continent and purpose is SIGNIFICANT
 
 PERMUTATIONAL TWO-WAYS ANOVA EXP-LIFETIME -\> USERS-PURPOSE
 
 ```{r}
-summary.aov(aov(explife ~ users + purpose + users:purpose)) 
-T0_cp <- summary.aov(aov(explife ~ users + purpose + users:purpose))[[1]][3,4]
+summary.aov(aov(diff ~ users + purpose + users:purpose)) 
+T0_cp <- summary.aov(aov(diff ~ users + purpose + users:purpose))[[1]][3,4]
 T0_cp
 
-aov.H0cp <- aov(explife ~ users + purpose) #reduced model 
+aov.H0cp <- aov(diff ~ users + purpose) #reduced model 
 aov.H0cp
 residuals.H0cp <- aov.H0cp$residuals
 
@@ -202,25 +254,17 @@ T_cp<- numeric(B)
 for(perm in 1:B){
   permutation <- sample(n)
   residuals.H0cp <- residuals.H0cp[permutation]
-  explife.perm.H0cp <- aov.H0cp$fitted + residuals.H0cp
-  T_cp[perm] <- summary.aov(aov(explife.perm.H0cp ~ users + purpose + users:purpose))[[1]][3,4]
+  diff.perm.H0cp <- aov.H0cp$fitted + residuals.H0cp
+  T_cp[perm] <- summary.aov(aov(diff.perm.H0cp ~ users + purpose + users:purpose))[[1]][3,4]
 }
 
-sum(T_cp >= T0_cp)/B
+sum(T_cp >= T0_cp)/B #0.004
 ```
 
-The interaction between users and purpose is significative at a confidence level of alpha=0.05 (p-value = 0.048)
+The interaction between users and purpose is SIGNIFICANT
 
 ------------------------------------------------------------------------
 
-I create a fictitious predicted lifetime
-
-```{r}
-mu <- 11.27487
-sig <- 4.2712
-n = dim(data)[1]
-predlife <- rnorm(n, mu, sig)
-```
 
 MANN-WHITNEY U TEST
 
@@ -232,7 +276,7 @@ H0: X and Y have the same distribution vs H1: P(X\>Y) != 0.5
 alpha=0.05
 
 p.value <- wilcox.test(explife,y=predlife, paired=F, conf.level = 1-alpha)$p.value
-p.value 
+p.value #1.542991e-07
 ```
 
 Now we consider predlife and explife as paired data
@@ -240,7 +284,7 @@ Now we consider predlife and explife as paired data
 ```{r}
 
 p.value <- wilcox.test(explife,y=predlife, paired=T, conf.level = 1-alpha)$p.value
-p.value
+p.value #7.234926e-12
 ```
 
 PERMUTATION TEST
@@ -276,7 +320,7 @@ perm_t_test=function(x,y,iter=1e3){ #conditional MC -> n.iterations
 
 
 p.value <- perm_t_test(explife, predlife)
-p.value
+p.value #0
 
 ```
 
@@ -313,7 +357,7 @@ plot(ecdf(T2))
 abline(v=T20,col=3,lwd=4)
 
 p_val <- sum(T2>=T20)/B
-p_val
+p_val #0
 ```
 
 ALTERNATIVE:
@@ -344,30 +388,12 @@ abline(v=T20,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T2>=T20)/B
-p_val
+p_val #0
 ```
 
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+------------------------------------------------------------------------
 
-???? togliamo la regression ???? REGRESSION for the difference explife - predlife
 
-```{r}
-
-# users = as.factor(data$Users)
-# purpose = as.factor(data$Purpose)
-# continent = as.factor(data$Continent)
-# orbit = as.factor(data$Orbit)
-# diff = explife - predlife
-# 
-# attach(data)
-# result <- lm( diff ~ users + purpose + continent + Perigee + Apogee + Period )
-# summary(result)
-# detach(data)
-
-# .... permutations
-# T0glob, and then single T0s
-
-```
 
 DDPLOT to compare the 2 populations
 
@@ -383,13 +409,14 @@ DepthProc::ddPlot(x = as.matrix(normal), # use as.matrix since ddplot usually re
                   y = as.matrix(as.matrix(result$residuals)),depth_params = list(method='Tukey'))
 ```
 
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+------------------------------------------------------------------------
 
 PERMUTATIONAL CONFIDENCE INTERVALS
 
 Let's use the two sample paired univariate permutation test
 
 ```{r}
+
 
 t1=explife
 t2=predlife
@@ -456,7 +483,12 @@ CI <- range(values.within.CI)  # obtain the confidence interval
 abline(v=CI[1], col="red")
 abline(v=CI[2], col="red")
 abline(v = mean(diff), lty=2)
+
+
 ```
+
+
+
 
 BOOTSTRAP DISTRIBUTION & CONFIDENCE INTERVALS for the mean of the difference
 
