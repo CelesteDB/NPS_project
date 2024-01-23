@@ -138,7 +138,7 @@ library('cfsurvival')
 c0 <- 10
 pr_list <- rep(0.5, n)
 pr_new_list <- rep(0.5, n_test)
-res <- cfsurv(x = X_test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
+res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
              Xtrain = X.train, C = C, event = Event, time = censored_T, 
              alpha = 0.1) #, model = "aft")
 
