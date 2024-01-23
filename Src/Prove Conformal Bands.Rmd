@@ -112,52 +112,39 @@ devtools::install_github("zhimeir/cfsurvival")
 covariates <-c('Apogee','log.Eccentricity','Mass','Users', 'Purpose', 'Continent', 'Orbit' )
 X.test <- test.set[, covariates]
 X.train <- data[, covariates]
+n=dim(X.train)[1]
+n_test=dim(X.test)[1]
 
 Event <- ifelse(data$Status == 'censored', FALSE, TRUE )
 
+C = data$`Effective Lifetime`
+id=which(data$Status=="retired")
+
+data$`Launch Date` <- as.Date(data$`Launch Date`)
+data$`Launch Date` <- as.POSIXct(data$`Launch Date`)
+data$`Final Date`<- as.Date(data$`Final Date`)
+data$`Final Date` <- as.POSIXct(data$`Final Date`)
+
+C[id]= data$`Final Date`[234] - data$`Launch Date`[id] # Censoring times 
+#C[id]= as.matrix(data$`Final Date`[234], nrow=length(id), cnol=1) - data$`Launch Date`[id] # Censoring times 
+
+censored_T = data$`Effective Lifetime`
 
 ```
 
 ```{r}
 library('cfsurvival')
-res <- cfsurv(x = X.test, Xtrain = X.train, C = data$`Effective Lifetime`, event = Event, time = data$`Effective Lifetime`, 
-             alpha = 0.1, model = "aft")
-```
-
-
-```{r}
-library('cfsurvival')
-
-set.seed(24601)
-
-n <- 2000
-X <- runif(n, 0, 2)
-T <- exp(X + rnorm(n, 0, 1))
-C <- rexp(n, rate = 0.05)
-event <- (T <= C)
-censored_T <- pmin(T, C)
-data <- data.frame(X = X, C = C, event = event, censored_T = censored_T)
-
-# Prediction point
-n_test <- 1000
-X_test <- runif(n_test, 0, 2)
-T_test <- exp(X_test + rnorm(n,0,1))
-
-# Running cfsurvival with c0 = 30
-c0 <- 30
+# Running cfsurvival with c0 = 10
+c0 <- 10
 pr_list <- rep(0.5, n)
 pr_new_list <- rep(0.5, n_test)
 res <- cfsurv(x = X_test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
-             Xtrain = X, C = C, event = event, time = censored_T, 
-             alpha = 0.1, model = "aft")
+             Xtrain = X.train, C = C, event = Event, time = censored_T, 
+             alpha = 0.1) #, model = "aft")
 
 # Examine the result
 cat(sprintf("The coverage is %.3f.\n", mean(res <= T_test)))
 ```
-
-
-
-
 
 
 
