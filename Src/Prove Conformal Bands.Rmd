@@ -155,7 +155,7 @@ pr_list <- rep(0.5, n)  ## provare a cambiare prior
 pr_new_list <- rep(0.5, n_test)
 res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
              Xtrain = X.train, C = C, event = Event, time = censored_T, 
-             alpha = 0.1) #, model = "aft")  ## il metodo non è non parametrico!!!
+             alpha = 0.1) #, model = "aft")  
 
 
 # Examine the result
