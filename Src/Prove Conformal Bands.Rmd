@@ -115,6 +115,12 @@ library('cfsurvival')
 covariates <-c('Apogee','log.Eccentricity','Mass','Users', 'Purpose', 'Continent', 'Orbit' )
 X.test <- test.set[, covariates]
 X.train <- data[, covariates]
+
+#X.test$Purpose = strata(X.test$Purpose)
+#X.test$Orbit = strata(X.test$Orbit)
+#X.train$Purpose = strata(X.train$Purpose)
+#X.train$Orbit = strata(X.train$Orbit)
+
 n=dim(X.train)[1]
 n_test=dim(X.test)[1]
 
