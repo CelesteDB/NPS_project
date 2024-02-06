@@ -154,8 +154,8 @@ c0 <- 8  ## coverage corretto
 pr_list <- rep(0.5, n)  ## provare a cambiare prior 
 pr_new_list <- rep(0.5, n_test)
 res <- cfsurv(x = X.test, c_list = c0, pr_list = pr_list, pr_new_list = pr_new_list,
-             Xtrain = X.train, C = C, event = Event, time = censored_T, 
-             alpha = 0.1) #, model = "aft")  
+             Xtrain = X.train, C = C, event = Event, time = censored_T,
+             alpha = 0.1)  
 
 
 
@@ -209,9 +209,9 @@ df_sample <- df %>% sample_n(10)
 T_sample <- sample(T, 10)
 
 # Crea il grafico con il dataframe campione
-ggplot(data=df_sample, aes(x=Index, y=LowerBound)) + 
-  geom_segment(aes(xend=Index, yend=Inf), color=pastel_colors[1], size = 3) +
-  geom_point(aes(y = T_sample),size=2.5, color = pastel_colors[2]) +
+ggplot(data=df, aes(x=Index, y=LowerBound)) + 
+  geom_segment(aes(xend=Index, yend=Inf), color=pastel_colors[1], size = 1) +
+  geom_point(aes(y = T),size=1, color = pastel_colors[2]) +
   coord_flip() +
   labs(x = "Index", y = "Confidence Interval and Effective Lifetime",
        title = "Conformal Prediction Interval and Effective Lifetime for Survival Time") +
@@ -219,4 +219,17 @@ ggplot(data=df_sample, aes(x=Index, y=LowerBound)) +
   theme(plot.title = element_text(hjust = 0.5), 
         text = element_text(size=12, family="sans", color="black"))
 ```
+```{r}
+BOOOHHHHHHHH
+
+# Crea 100 suddivisioni casuali
+splits <- split(res, rep(1:100, each = length(res) / 100))
+
+# Calcola la mediana per ciascuna suddivisione
+medians <- sapply(splits, median)
+
+perc <- quantile(test.set$Period, probs = seq(0,1,0.01))
+
+```
+
 
