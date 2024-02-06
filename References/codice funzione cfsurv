@@ -1,0 +1,7 @@
+CONFORMAL PREDICTION INTERVALS
+
+IMPLEMENTAZIONE FUNZIONE cfsurv CON COX MODEL:
+https://github.com/zhimeir/cfsurvival/blob/master/R/ph_based.R
+
+QUANTILE REGRESSION MODEL (Peng, Huang):   (usato nella funzione implementata)
+https://www.jstor.org/stable/27640086

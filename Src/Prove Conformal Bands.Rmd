@@ -115,6 +115,12 @@ library('cfsurvival')
 covariates <-c('Apogee','log.Eccentricity','Mass','Users', 'Purpose', 'Continent', 'Orbit' )
 X.test <- test.set[, covariates]
 X.train <- data[, covariates]
+
+#X.test$Purpose = strata(X.test$Purpose)
+#X.test$Orbit = strata(X.test$Orbit)
+#X.train$Purpose = strata(X.train$Purpose)
+#X.train$Orbit = strata(X.train$Orbit)
+
 n=dim(X.train)[1]
 n_test=dim(X.test)[1]
 
@@ -129,7 +135,6 @@ data$`Final Date`<- as.Date(data$`Final Date`)
 data$`Final Date` <- as.POSIXct(data$`Final Date`)
 
 C[id]= data$`Final Date`[234] - data$`Launch Date`[id] # Censoring times 
-#C[id]= as.matrix(data$`Final Date`[234], nrow=length(id), cnol=1) - data$`Launch Date`[id] # Censoring times 
 
 censored_T = data$`Effective Lifetime`
 
@@ -143,8 +148,15 @@ heuristic way to mitigate this issue is to discard units with small values of C.
 a threshold c0, and extract the subpopulation on which C ≥ c0.
 
 ```{r}
-C.anni <- C/365
-C.anni
+#trasformo in anni anche i tempi in [id]:
+fine_analisi = rep(data$`Final Date`[234], times=length(id))
+fine_analisi<- as.Date(fine_analisi)
+fine_analisi <- as.POSIXct(fine_analisi)
+C[id] = round(as.numeric(fine_analisi - data$`Launch Date`[id])/365, digit = 2)
+C
+
+#C.anni <- C/365
+#C.anni
 
 ```
 
