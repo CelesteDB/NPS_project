@@ -136,59 +136,71 @@ table(test.set$Orbit, test.set$Purpose)
 ```
 strata = 1 --> hazard riferita alla prima osservazione
 
-
 ```{r}
 ## S3 method for class 'coxph'
 expLP = predict(cox, test.set,
 #type=c("lp", "risk", "expected", "terms", "survival"),
 type = 'risk',
-reference=c("strata", "sample", "zero"))
+reference=c("strata"))
 ```
 
-Prediction
 ```{r}
-# a mano: Idea imprlementare quello che fa Coxed (Incluso bootstrap) in modo da poter usare strata
-# Qui il link di coxed : https://github.com/jkropko/coxed/blob/master/R/coxed.R
-```
-
-
-```{r}
-coxed <- coxed::coxed(cox, newdata = test.set, method="npsf", bootstrap = TRUE, B=750)
-predicted_lifetime <- coxed$exp.dur
+haz1 <- basehax.dataframe[which(basehax.dataframe$strata == 1),1]
+time1 <- basehax.dataframe[which(basehax.dataframe$strata == 1),2]
 ```
 
 
 
 ```{r}
-id <- which(test.set$Status == 'retired')
-diff <- predicted_lifetime$exp.dur[id] - test.set$`Effective Lifetime`[id]
-plot(diff)
+curva1 <- haz1 * expLP[1]
+surv1 <- exp(-cumsum(curva1))
+
+plot(time1, surv1, type ='l')
 
 ```
-```{r}
-sqrt(sum(diff^2)/length(diff))
-mean(diff)
-median(diff)
-#mean(test.set$`Effective Lifetime`[id])
-```
-```{r}
 
 
-# Calculate Concordance Index
-c_index <- survConcordance(Surv(test.set$`Effective Lifetime`, predicted_lifetime$exp.dur) ~ predicted_lifetime$exp.dur)
-print(paste("Concordance Index: ", c_index$concordance))
-
-```
 ```{r}
-diff <- predicted_lifetime$exp.dur[id] - test.set$`Expected Lifetime`[id]
-plot(diff)
+for (i in 1:113) {
+  haz <- basehax.dataframe[which(basehax.dataframe$strata == i), 1]
+  timeS <- basehax.dataframe[which(basehax.dataframe$strata == i), 2]
+
+  curva <- haz * expLP[i]
+  surv <- exp(-cumsum(curva))
+
+  plot(timeS, surv, type = 'l', main = paste("Survival Curve for Satellite", i),
+       xlab = "Time", ylab = "Survival Probability")
+}
+
 ```
 
 ```{r}
-sorted_lt <- predicted_lifetime[order(predicted_lifetime$exp.dur),]
+library(ggplot2)
 
-t <- seq(0, max(test.set$`Effective Lifetime`), length = length(sorted_lt$exp.dur))
-plot(t, sorted_lt$exp.dur, type = 'l', lwd = 2)
-lines(t, sorted_lt$lb)
-lines(t, sorted_lt$ub)
+# Creazione del dataframe
+data <- data.frame(hazard = numeric(), timeS = numeric(), strata = numeric(), survival =numeric())
+
+#r <-  sample(1:113, 5, replace = FALSE)
+r <- c(2,4,7,8,10,14)
+for (i in 1:113) {
+  haz <- basehax.dataframe[which(basehax.dataframe$strata == i), 1]
+  timeS <- basehax.dataframe[which(basehax.dataframe$strata == i), 2]
+  strata <- rep(i, length(haz))
+  curva <- haz * expLP[i]
+  surv <- exp(-cumsum(curva))
+  data <- rbind(data, data.frame(hazard = haz, timeS = timeS, strata = strata, survival =  surv))
+}
+
+# Calcola la curva di sopravvivenza per ogni strato
+#data <- transform(data, survival = exp(-cumsum(hazard * expLP[strata])))
+
+# Creazione del grafico utilizzando ggplot2
+ggplot(data, aes(x = timeS, y = survival, color = factor(strata))) +
+  geom_line(size = 1) +
+  scale_color_discrete(name = "Strata") +
+  labs(x = "Time", y = "Survival Probability", title = "Survival Curves") +
+  theme_minimal() +
+  theme(panel.grid.major = element_line(colour = "gray", linetype = "dashed"),
+        panel.grid.minor = element_blank())
+
 ```

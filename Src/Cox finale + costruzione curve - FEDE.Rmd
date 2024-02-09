@@ -181,22 +181,25 @@ for (i in 1:113) {
 library(ggplot2)
 
 # Creazione del dataframe
-data <- data.frame(hazard = numeric(), timeS = numeric(), strata = numeric())
+data <- data.frame(hazard = numeric(), timeS = numeric(), strata = numeric(), survival =numeric())
 
-r <-  sample(1:113, 5, replace = FALSE)
-for (i in r) {
+#r <-  sample(1:113, 5, replace = FALSE)
+r <- c(2,4,7,8,10,14)
+for (i in 1:113) {
   haz <- basehax.dataframe[which(basehax.dataframe$strata == i), 1]
   timeS <- basehax.dataframe[which(basehax.dataframe$strata == i), 2]
   strata <- rep(i, length(haz))
-  data <- rbind(data, data.frame(hazard = haz, timeS = timeS, strata = strata))
+  curva <- haz * expLP[i]
+  surv <- exp(-cumsum(curva))
+  data <- rbind(data, data.frame(hazard = haz, timeS = timeS, strata = strata, survival =  surv))
 }
 
 # Calcola la curva di sopravvivenza per ogni strato
-data <- transform(data, survival = exp(-cumsum(hazard * expLP[strata])))
+#data <- transform(data, survival = exp(-cumsum(hazard * expLP[strata])))
 
 # Creazione del grafico utilizzando ggplot2
 ggplot(data, aes(x = timeS, y = survival, color = factor(strata))) +
-  geom_line(size = 1.5) +
+  geom_line(size = 1) +
   scale_color_discrete(name = "Strata") +
   labs(x = "Time", y = "Survival Probability", title = "Survival Curves") +
   theme_minimal() +
