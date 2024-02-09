@@ -185,7 +185,7 @@ data <- data.frame(hazard = numeric(), timeS = numeric(), strata = numeric(), su
 
 #r <-  sample(1:113, 5, replace = FALSE)
 r <- c(2,4,7,8,10,14)
-for (i in 1:113) {
+for (i in r) { # 1:113
   haz <- basehax.dataframe[which(basehax.dataframe$strata == i), 1]
   timeS <- basehax.dataframe[which(basehax.dataframe$strata == i), 2]
   strata <- rep(i, length(haz))
