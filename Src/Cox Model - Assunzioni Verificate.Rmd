@@ -388,7 +388,27 @@ coxed <- coxed::coxed(cox5bis, newdata = test.set, method="npsf", bootstrap = TR
 predicted_lifetime <- coxed$exp.dur
 ```
 
+```{r}
+# SE USI npsf
+err <- predicted_lifetime$exp.dur - test.set$`Effective Lifetime`
+id <- which( abs(err) > 21)
+errnostro <- sum((predicted_lifetime$exp.dur[-id] - test.set$`Effective Lifetime`[-id])^2)
+errloro <- sum((test.set$`Expected Lifetime`[-id] - test.set$`Effective Lifetime`[-id])^2)
+errnostro
+errloro
+```
+```
 
+
+```{r}
+# SE USI GAM
+err <- predicted_lifetime$exp.dur - test.set$`Effective Lifetime`
+id <- which( abs(err) > 18)
+errnostro <- sum((predicted_lifetime$exp.dur[-id] - test.set$`Effective Lifetime`[-id])^2)
+errloro <- sum((test.set$`Expected Lifetime`[-id] - test.set$`Effective Lifetime`[-id])^2)
+errnostro
+errloro
+```
 
 ```{r}
 id <- which(test.set$Status == 'retired')
