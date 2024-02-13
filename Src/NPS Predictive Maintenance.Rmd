@@ -14,6 +14,7 @@ library(ggplot2)
 library(knitr)
 library(broom)
 library(tidyr)
+library(lubridate)
 ```
 
 Load Data:
@@ -60,6 +61,8 @@ summary(cox)
 
 Compute Baseline Hazard:
 ```{r}
+idx <- which(data$Status == "censored")
+data <- data[idx,]
 bashaz.data <- basehaz(cox, data, centered=TRUE)
 basehax.dataframe <- data.frame(bashaz.data)
 ```
@@ -134,7 +137,7 @@ anni_data <- year(date_futuro)
 mesi_data <- factor(month(date_futuro), labels = month.abb, ordered = FALSE)
 
 # Creazione del dataframe con tutte le combinazioni di mese e anno
-anni <- seq(oggi, by = "year", length.out = 35)
+anni <- seq(as.Date("2023-11-17"), by = "year", length.out = 35)
 anni <- year(anni)
 mesi <- factor(month.abb, levels = month.abb)  # Converti i mesi in un fattore ordinato
 combinazioni_mese_anno <- expand.grid(Mese = mesi, Anno = anni)
