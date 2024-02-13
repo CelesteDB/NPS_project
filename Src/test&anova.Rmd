@@ -713,3 +713,143 @@ ggplot(df, aes(x = x, y = y)) +
          y = "Disparity in Predicted vs. Expected Lifetime") 
 
 ```
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+TEST E CI INIZIALI PER DIFFERENZA expected-effective
+
+```{r}
+id_ret= which(data$Status=="retired")
+effectlife=data$`Effective Lifetime`
+explife=data$`Expected Lifetime`
+t1=effectlife[id_ret]
+t2=explife[id_ret]
+
+diff <- t1-t2
+B = 1000
+test1 <- function(diff, delta.0, B = 1000) {
+  
+  data_trans <- diff - delta.0
+  T0 <- abs(mean(data_trans)) # statistic T=abs(mean(diff-delta.0))  (univariate case) 
+  T_perm <- numeric(B)
+  n1 <- length(diff)
+  p <-1 
+  
+
+  for(perm in 1:B)
+    {
+    # Random permutation
+    # obs: exchanging data within couples means changing the sign of the difference
+    signs.perm <- rbinom(n1, 1, 0.5)*2 - 1
+    data_trans_perm <- data_trans * signs.perm
+    T_perm[perm] <- abs(mean(data_trans_perm)) 
+    
+  }
+  
+  p_val <- sum(T_perm >= T0)/B
+  
+  
+  return(p_val)
+}
+
+grid=seq(-5,1,by=0.1)
+length(grid)
+
+library(pbapply)
+library(parallel)
+
+n_cores <- detectCores()
+n_cores
+
+cl = makeCluster(n_cores)
+
+clusterExport(cl,varlist=list("diff","test1"))
+
+perm_wrapper <- function(grid_point) {
+  test1(diff, grid_point, B=2000)  
+}
+
+pval_function <- pbsapply(grid, perm_wrapper, cl = cl)
+
+# pval_function <- numeric(length(grid))
+# i = 0
+# for (theta in grid) {
+#   pval_function[i] = test1(theta)
+#   i = i+1
+# }
+
+
+alpha <- 0.05  # set the significance level
+plot(grid, pval_function, type = "l")  # plot p-value function
+values.within.CI <- grid[pval_function > alpha]
+CI <- range(values.within.CI)  # obtain the confidence interval
+abline(v=CI[1], col="red")
+abline(v=CI[2], col="red")
+abline(v = mean(diff), lty=2)
+
+
+
+library(pbapply)
+library(parallel)
+
+T.obs <- mean(diff)
+
+cl=makeCluster(parallel::detectCores()/2)
+clusterExport(cl=cl,list('diff'))
+
+T.boot=pbreplicate(B,  
+                   mean(sample(diff, replace = T)),
+                   cl=cl)
+
+plot(ecdf(T.boot), main='Sample mean of the difference')
+abline(v = T.obs, lty=2)
+
+var=var(T.boot)
+bias=mean(T.boot)-T.obs
+RMSE=sqrt(var+bias^2)
+
+# REVERSE PERCENTILE INTERVALS
+alpha <- 0.05
+
+right.quantile <- quantile(T.boot, 1 - alpha/2)
+left.quantile  <- quantile(T.boot, alpha/2)
+
+
+
+CI.RP <- c(T.obs - (right.quantile - T.obs), T.obs - (left.quantile - T.obs))
+names(CI.RP)=c('lwr','upr')
+
+plot(ecdf(T.boot), main='Sample mean of the difference')
+abline(v = T.obs, lty=2)
+abline(v=CI.RP)
+```
+
+shapiro_test
+
+```{r}
+shapiro.test(diff)
+```
+
+```{r}
+#DDPLOT
+windows()
+DepthProc::ddPlot(x = as.matrix(effectlife), # use as.matrix since ddplot usually receives multivariate data
+                  y = as.matrix(explife),depth_params = list(method='Tukey'))
+
+
+#PLOT BOOTSTRAP CI
+windows()
+
+CI=CI.RP
+
+df <- data.frame(y = c(CI[1], CI[2]), label = c("Lower", "Upper"))
+
+# Creazione del grafico con ggplot2
+ggplot(df, aes(x = 1, y = y)) +
+  geom_errorbar(aes(ymin = CI[1], ymax = CI[2]), width = 0.2, color = "blue", size = 1) +
+  geom_point(color = "blue", size = 3) +
+  geom_hline(yintercept = mean(CI), linetype = "dashed", color = "green", size = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red", size = 1) +
+  labs(title = "Intervallo di Confidenza", y = "Confidence Interval") +
+  theme_minimal()
+```
