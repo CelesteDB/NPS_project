@@ -370,15 +370,10 @@ p_val #0
 DDPLOT to compare the 2 populations
 
 ```{r}
+windows()
 
-result <- lm( explife ~ users + purpose + continent + Perigee + Apogee + Period )
-n <- length(result$residuals)
-
-# now we comparew the explife with a normal distribution
-normal <- as.matrix(rnorm(n, sd=summary.lm(result)$sigma))  # unbiased estimate of residual variance
-
-DepthProc::ddPlot(x = as.matrix(normal), # use as.matrix since ddplot usually receives multivariate data
-                  y = as.matrix(as.matrix(result$residuals)),depth_params = list(method='Tukey'))
+DepthProc::ddPlot(x = as.matrix(predlife), # use as.matrix since ddplot usually receives multivariate data
+                  y = as.matrix(explife),depth_params = list(method='Tukey'))
 ```
 
 ------------------------------------------------------------------------
