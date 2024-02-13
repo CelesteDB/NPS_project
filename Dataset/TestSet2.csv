@@ -1,0 +1,106 @@
+Satellite Name;Country;Users;Purpose;Orbit;Longitude of GEO;Perigee;Apogee;Eccentricity;Inclination;Period;Launch Date;Status;Final Date;Effective Lifetime;Expected Lifetime;Mass;Continent;log.Eccentricity
+TDRS-3;USA;Government;Communications;GEO;-49;35693;35878;0,002194257;11,53;1436,06;29/09/1988;retired;01/12/2011;23,19;10;22;Americas;6,121911797
+ORBCOMM FM-10;USA;Commercial;Communications;LEO;0;770;776;0,000419992;45;100,3;23/12/1997;censored;15/04/2023;25,33;5;5000;Americas;7,775275846
+NOAA-15;USA;Government;Earth Observation;LEO;0;800;816;0,001114517;98,7;101;13/05/1998;censored;17/11/2023;25,53;3;4;Americas;6,79933453
+ORBCOMM FM-14;USA;Commercial;Communications;LEO;0;789;794;0,000349089;45;100,7;02/08/1998;censored;15/04/2023;24,72;5;4;Americas;7,960184003
+ORBCOMM FM-21;USA;Commercial;Communications;LEO;0;810;822;0,000834957;45;101,21;23/09/1998;censored;15/04/2023;24,58;5;5;Americas;7,088130498
+Globalstar FM37;USA;Commercial;Communications;LEO;0;1411;1417;0,000385406;52;114,1;15/03/1999;censored;17/11/2023;24,69;10;9;Americas;7,861213335
+USA 147;USA;Military;Earth Observation;LEO;0;837;851;0,000970335;98,9;101,8;12/12/1999;censored;17/11/2023;23,95;5;5;Americas;6,937868712
+Brazilsat B-4;Brazil;Commercial;Communications;GEO;-84,03;35772;35800;0,0003321;0,07;1436,09;17/08/2000;retired;01/06/2021;20,8;12;2081;Americas;8,010074972
+AMC-6;USA;Commercial;Communications;GEO;-71,98;35778;35795;0,00020163;0,05;1436,12;22/10/2000;censored;17/11/2023;23,08;15;2015;Americas;8,509077999
+Sicral 1A;Italy;Military;Communications;GEO;16,25;35769;35802;0,000391408;1,01;1436,06;07/02/2001;retired;12/05/2021;20,27;12;2150;Europe;7,84576006
+Intelsat 10;USA;Commercial;Communications;GEO;68,52;35776;35796;0,000237214;0,04;1436,08;14/05/2001;censored;17/11/2023;22,53;15;5910;Americas;8,346547209
+Bispectral InfraRed Detector 2 (Bird 2);Germany;Government;Earth Observation;LEO;0;500;521;0,001526052;97,9;94,8;22/10/2001;retired;31/12/2005;4,19;1,5;12;Europe;6,485071346
+Echostar 7;USA;Commercial;Communications;GEO;-118,85;35782;35789;8,30E-05;0,01;1436,07;21/02/2002;retired;06/05/2022;20,22;12;12;Americas;9,396357473
+TDRS-9;USA;Government;Communications;GEO;-62,43;35768;35809;0,00048626;0,02;1436,11;08/03/2002;retired;05/01/2023;20,84;15;12;Americas;7,628766718
+JCSat 2A;Japan;Commercial;Communications;GEO;154;35788;35794;7,12E-05;0,01;1436,1;29/03/2002;censored;17/11/2023;21,65;11;12;Asia;9,550638613
+Intelsat 905;USA;Commercial;Communications;GEO;-24,52;35768;35805;0,000438841;0,01;1436,12;05/06/2002;censored;17/11/2023;21,47;13;5550;Americas;7,731373431
+Intelsat 906;USA;Commercial;Communications;GEO;64,19;35775;35796;0,000249078;0,01;1436,07;06/09/2002;censored;17/11/2023;21,21;13;6465;Americas;8,297745184
+Echostar 9/Galaxy 23;USA;Commercial;Communications;GEO;-121,02;35775;35797;0,000260936;0,01;1436,08;08/08/2003;censored;17/11/2023;20,29;13;3700;Americas;8,251237029
+Galaxy-13;USA;Commercial;Communications;GEO;-126,97;35781;35790;0,000106748;0,01;1436,07;01/10/2003;censored;17/11/2023;20,14;15;4500;Americas;9,145043044
+USA 172;USA;Military;Earth Observation;LEO;0;843;852;0,000623485;98,9;101,87;18/10/2003;censored;17/11/2023;20,1;5;6140;Americas;7,380186515
+USA 174;USA;Military;Communications;GEO;71,44;35786;35787;1,19E-05;2,16;1436,1;18/12/2003;censored;17/11/2023;19,93;4;2775;Americas;11,34229134
+Syracuse 3A;France;Military;Communications;GEO;47,05;35778;35792;0,000166054;0;1436,06;13/10/2005;censored;17/11/2023;18,11;12;1420;Europe;8,703198431
+AMC-18;USA;Commercial;Communications;GEO;-104,97;35773;35800;0,000320235;0,06;1436,1;08/12/2006;censored;17/11/2023;16,95;15;4;Americas;8,046454477
+Globalstar M065;USA;Commercial;Communications;LEO;0;1411;1416;0,000321192;52;114,1;29/05/2007;censored;17/11/2023;16,48;10;3080;Americas;8,043470656
+Globalstar M072;USA;Commercial;Communications;LEO;0;1412;1416;0,000256937;52;114,1;29/05/2007;censored;17/11/2023;16,48;10;3500;Americas;8,266678443
+Skynet 5B;United Kingdom;Military;Communications;GEO;52,8;35700;35803;0,001222654;0,07;1436,1;14/11/2007;censored;17/11/2023;16,02;15;4000;Europe;6,70673177
+USA 204;USA;Military;Communications;GEO;60,18;35786;35787;1,19E-05;0,03;1436,12;04/04/2009;censored;17/11/2023;14,63;14;1;Americas;11,34229134
+GOES-14;USA;Government;Earth Observation;GEO;-104,41;35170;35170;1;0;1436;27/06/2009;censored;17/11/2023;14,4;10;1;Americas;0
+SMOS;ESA;Government;Earth Observation;LEO;0;759;760;7,01E-05;98,4;100;02/11/2009;censored;17/11/2023;14,05;3;3800;Europe;9,565143565
+Intelsat 14;USA;Commercial;Communications;GEO;-45;35771;35800;0,000343965;0,02;1436,05;23/11/2009;censored;17/11/2023;13,99;16;4200;Americas;7,974971792
+GOES-15;USA;Government;Earth Observation;GEO;-135;35786;35788;2,37E-05;0,42;1436,14;04/03/2010;retired;29/10/2018;8,66;10;4200;Americas;10,64915602
+SES-1;Luxembourg;Commercial;Communications;GEO;-101;35781;35793;0,000142325;0,05;1436,1;24/04/2010;censored;17/11/2023;13,58;15;800;Europe;8,857396554
+GSAT-8;India;Government;Communications;GEO;55;35782;35796;0,000166038;0,09;1436,23;20/05/2011;censored;17/11/2023;12,5;12;800;Asia;8,703293315
+Fengyun 2F;China;Government;Earth Observation;GEO;112;35760;35816;0,000664168;2,19;1436,19;12/01/2012;retired;01/04/2022;10,22;3;800;Asia;7,316975234
+SDS-4;Japan;Government;Technology Development;LEO;0;661;673;0,000852636;98,2;98,1;17/05/2012;censored;01/07/2021;9,13;2;800;Asia;7,067177753
+USA 244;USA;Military;Communications;GEO;-135,22;35772;35801;0,000343956;0;1436,1;08/08/2013;censored;17/11/2023;10,28;14;92;Americas;7,974995513
+SWARM-B;ESA;Government;Earth Observation;LEO;0;473;476;0,000219154;87,3;93,9;22/11/2013;censored;17/11/2023;9,99;4;56;Europe;8,425735581
+SWARM-C;ESA;Government;Earth Observation;LEO;0;486;496;0,000728757;87,5;94;22/11/2013;censored;17/11/2023;9,99;4;55;Europe;7,22417057
+INMARSAT 5 F1;United Kingdom;Commercial;Communications;GEO;60,3;35784;35790;7,12E-05;0,06;1436,13;08/12/2013;censored;17/11/2023;9,95;15;55;Europe;9,550543735
+USA 263;USA;Military;Communications;GEO;174,96;35772;35801;0,000343956;0;1436,1;24/07/2015;censored;17/11/2023;8,32;14;10;Americas;7,974995513
+SES-9;Luxembourg;Commercial;Communications;GEO;108,02;35787;35791;4,74E-05;0,05;1436,2;04/03/2016;censored;17/11/2023;7,71;15;10;Europe;9,956056283
+Iridium Next 105;USA;Government;Communications;LEO;0;608;622;0,001002147;86,6;97;14/01/2017;censored;17/11/2023;6,84;15;25;Americas;6,905610123
+Iridium Next 109;USA;Government;Communications;LEO;0;610;622;0,000858861;86,6;97;14/01/2017;censored;17/11/2023;6,84;15;587;Americas;7,059903956
+Iridium Next 114;USA;Government;Communications;LEO;0;608;622;0,001002147;86,6;96,9;14/01/2017;censored;17/11/2023;6,84;15;15;Americas;6,905610123
+Hispasat 36W-1;Spain;Commercial;Communications;GEO;-36,9;35783;35791;9,49E-05;0;1436,1;28/01/2017;censored;17/11/2023;6,81;15;15;Europe;9,262861662
+Iridium Next 123;USA;Government;Communications;LEO;0;607;624;0,001216806;86,6;97;25/06/2017;censored;17/11/2023;6,4;15;112;Americas;6,711525688
+Iridium Next 128;USA;Government;Communications;LEO;0;609;625;0,001144984;86,6;97;25/06/2017;censored;17/11/2023;6,4;15;680;Americas;6,772365017
+Iridium Next 119;USA;Government;Communications;LEO;0;610;626;0,00114482;86,6;97;09/10/2017;censored;17/11/2023;6,11;15;714;Americas;6,77250813
+Iridium Next 129;USA;Government;Communications;LEO;0;611;626;0,001073192;86,6;97;09/10/2017;censored;17/11/2023;6,11;15;500;Americas;6,837118199
+Iridium Next 139;USA;Government;Communications;LEO;0;609;626;0,001216458;86,6;97;09/10/2017;censored;17/11/2023;6,11;15;1980;Americas;6,711811954
+Iridium Next 135;USA;Government;Communications;LEO;0;610;626;0,00114482;86,7;97;23/12/2017;censored;17/11/2023;5,9;15;4;Americas;6,77250813
+GOES-S;USA;Government;Earth Observation;GEO;-137;35778;35795;0,00020163;0;1436,09;01/03/2018;censored;17/11/2023;5,72;15;4742;Americas;8,509077999
+Iridium  Next 142;USA;Government;Communications;LEO;0;608;626;0,001288106;86,6;97;30/03/2018;censored;17/11/2023;5,64;15;500;Americas;6,654581981
+Iridium Next 144;USA;Government;Communications;LEO;0;606;625;0,00135996;86,6;97;30/03/2018;censored;17/11/2023;5,64;15;4;Americas;6,600300052
+Iridium Next 146;USA;Government;Communications;LEO;0;608;627;0,001359571;86,6;97;30/03/2018;censored;17/11/2023;5,64;15;100,8;Americas;6,600586319
+Iriidium Next 148;USA;Government;Communications;LEO;0;606;625;0,00135996;86,6;97;30/03/2018;censored;17/11/2023;5,64;15;100;Americas;6,600300052
+Iridium Next 147;USA;Government;Communications;LEO;0;489;714;0,01613713;86,7;96,7;22/05/2018;censored;17/11/2023;5,49;15;10;Americas;4,126632467
+Iridium Next 161;USA;Government;Communications;LEO;0;489;714;0,01613713;86,7;96,7;22/05/2018;censored;17/11/2023;5,49;15;10;Americas;4,126632467
+Iridium Next 163;USA;Government;Communications;LEO;0;607;623;0,001145311;86,6;97;25/07/2018;censored;17/11/2023;5,32;15;848;Americas;6,77207873
+Iridium Next 164;USA;Government;Communications;LEO;0;607;623;0,001145311;86,6;97;25/07/2018;censored;17/11/2023;5,32;15;1500;Americas;6,77207873
+Iridium Next 168;USA;Government;Communications;LEO;0;608;626;0,001288106;86,7;97;11/01/2019;censored;17/11/2023;4,85;15;280;Americas;6,654581981
+Iridium Next 169;USA;Government;Communications;LEO;0;609;626;0,001216458;86,7;97;11/01/2019;censored;17/11/2023;4,85;15;280;Americas;6,711811954
+Iridium Next 180;USA;Government;Communications;LEO;0;611;626;0,001073192;86,7;97;11/01/2019;censored;17/11/2023;4,85;15;70;Americas;6,837118199
+Bispectral InfraRed Detector 2 (Bird 2);Germany;Government;Earth Observation;LEO;0;500;521;0,001526052;97,9;94,8;22/10/2001;retired;22/04/2023;21,51;1,5;92;Europe;6,485071346
+Dove 2k-15;USA;Commercial;Earth Observation;LEO;0;461;475;0,001023691;97;94;14/07/2017;retired;22/05/2023;5,86;3;3;Americas;6,884340421
+Dove 2k-19;USA;Commercial;Earth Observation;LEO;0;460;475;0,001096892;97;94;14/07/2017;retired;26/11/2023;6,37;3;3;Americas;6,815274426
+Dove 2k-35;USA;Commercial;Earth Observation;LEO;0;458;475;0,001243326;97;94;14/07/2017;retired;24/05/2023;5,86;3;3;Americas;6,68996502
+Dove 2p-8;USA;Commercial;Earth Observation;LEO;0;500;514;0,001017886;97,51;94,76;22/06/2016;retired;28/11/2023;7,44;3;3;Americas;6,89002764
+Dove 3k-10;USA;Commercial;Earth Observation;LEO;0;480;509;0,002112317;97,3;94,5;27/12/2018;retired;18/01/2023;4,06;3;4;Americas;6,159969833
+Dove 3k-9;USA;Commercial;Earth Observation;LEO;0;480;509;0,002112317;97,3;94,5;27/12/2018;retired;31/01/2023;4,1;3;4;Americas;6,159969833
+Dove  3p-12;USA;Commercial;Earth Observation;LEO;0;496;506;0,000727696;97,5;94,6;14/02/2017;retired;28/02/2023;6,04;3;4;Americas;7,225627023
+Dove 3p-37;USA;Commercial;Earth Observation;LEO;0;496;506;0,000727696;97,5;94,6;14/02/2017;retired;28/03/2023;6,12;3;4;Americas;7,225627023
+Dove 3p-32;USA;Commercial;Earth Observation;LEO;0;495;506;0,000800524;97,5;94,6;14/02/2017;retired;06/07/2023;6,39;3;4;Americas;7,130244071
+Dove 3p-34;USA;Commercial;Earth Observation;LEO;0;496;505;0,000654974;97,5;94,6;14/02/2017;retired;19/12/2022;5,85;3;4;Americas;7,330914766
+Dove 3p-46;USA;Commercial;Earth Observation;LEO;0;494;504;0,000727908;97,5;94,6;14/02/2017;retired;25/12/2022;5,86;3;4;Americas;7,225335902
+Dove 3p-54;USA;Commercial;Earth Observation;LEO;0;494;502;0,000582411;97,5;94,6;14/02/2017;retired;21/09/2023;6,6;3;4;Americas;7,448333861
+Dove 3p-57;USA;Commercial;Earth Observation;LEO;0;496;506;0,000727696;97,5;94,6;14/02/2017;retired;24/06/2023;6,36;3;4;Americas;7,225627023
+Dove 3p-61;USA;Commercial;Earth Observation;LEO;0;494;504;0,000727908;97,5;94,6;14/02/2017;retired;03/08/2023;6,47;3;4;Americas;7,225335902
+Dove 3p-76;USA;Commercial;Earth Observation;LEO;0;495;506;0,000800524;97,5;94,6;14/02/2017;retired;15/06/2022;5,33;3;4;Americas;7,130244071
+Dove 3r-9;USA;Commercial;Earth Observation;LEO;0;476;500;0,001749781;97,5;94,6;29/10/2018;retired;09/11/2022;4,03;3;4;Americas;6,348264483
+Dove 4p-4;USA;Commercial;Earth Observation;LEO;0;499;515;0,001163298;97,5;94,7;27/11/2019;retired;14/11/2023;3,97;3;4;Americas;6,756496248
+Dove 4s-2;USA;Commercial;Earth Observation;LEO;0;519;535;0,001159925;97,5;95,2;24/01/2021;retired;18/04/2023;2,23;3;4;Americas;6,759400272
+Dove 4v-22;USA;Commercial;Earth Observation;LEO;0;514;526;0,000870827;97,5;94,7;03/10/2020;retired;16/04/2023;2,53;3;4;Americas;7,046066895
+IGS-8B;Japan;Government;Earth Observation;LEO;0;512;523;0,000798548;97,5;94,85;27/01/2013;retired;17/03/2023;10,14;5;1600;Asia;7,132715361
+Megha-Tropiques;India;Government;Earth Observation;LEO;0;853;868;0,001037273;20;102,2;12/10/2011;retired;11/09/2023;11,92;5;1000;Asia;6,871160449
+Prometheus 2.9;USA;Military;Technology Development;LEO;0;437;460;0,001686588;45;93,5;29/06/2019;retired;06/10/2023;4,27;3;1;Americas;6,38504775
+SpaceBEE-129;USA;Commercial;Communications;LEO;0;498;509;0,000800175;97,4;94;01/04/2022;retired;14/11/2023;1,62;2;2;Americas;7,130680625
+SpaceBEE-131;USA;Commercial;Communications;LEO;0;498;509;0,000800175;97,4;94;01/04/2022;retired;29/11/2023;1,66;2;2;Americas;7,130680625
+SpaceBEE-136;USA;Commercial;Communications;LEO;0;497;508;0,000800291;97,4;94;01/04/2022;retired;28/02/2023;0,91;2;2;Americas;7,130535128
+SpaceBEE-137;USA;Commercial;Communications;LEO;0;497;509;0,000872981;97,4;94;01/04/2022;retired;17/10/2023;1,55;2;2;Americas;7,043596502
+SpaceBEE-NZ1;USA;Commercial;Communications;LEO;0;492;513;0,001527828;97,5;94,5;20/11/2020;retired;16/06/2023;2,57;2;2;Americas;6,483907963
+SpaceBEE-NZ13;USA;Commercial;Communications;LEO;0;506;543;0,002683298;97,5;94,3;15/03/2022;retired;18/11/2023;1,68;2;2;Americas;5,920708539
+SpaceBEE-NZ6;USA;Commercial;Communications;LEO;0;492;518;0,001890909;97,5;94,5;20/11/2020;retired;16/04/2023;2,4;2;2;Americas;6,270697565
+Starlink-1881;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;24/11/2020;retired;18/12/2022;2,07;4;260;Americas;6,971018949
+Starlink-1902;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;24/10/2020;retired;12/10/2022;1,97;4;260;Americas;6,971018949
+Starlink-1939;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;24/10/2020;retired;22/10/2023;2,99;4;260;Americas;6,971018949
+Starlink-2216;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;24/03/2021;retired;14/09/2023;2,48;4;260;Americas;6,971018949
+Starlink-2328;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;14/03/2021;retired;16/09/2023;2,51;4;260;Americas;6,971018949
+Starlink-2345;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;14/03/2021;retired;23/02/2023;1,95;4;260;Americas;6,971018949
+Starlink-2359;USA;Commercial;Communications;LEO;0;548;561;0,000938696;53;95,6;14/03/2021;retired;30/11/2023;2,72;4;260;Americas;6,971018949
+Starlink-3596;USA;Commercial;Communications;LEO;0;348;351;0,000223231;53,2;91,5;25/02/2022;retired;19/08/2023;1,48;4;260;Americas;8,407303918
+Starlink-4113;USA;Commercial;Communications;LEO;0;538;541;0,000217092;53,2;95,4;24/07/2022;retired;25/06/2023;0,92;4;260;Americas;8,435187447
+Steamsat-1;Poland;Commercial;Technology Development;LEO;0;495;501;0,000436808;45;95,7;13/01/2022;retired;13/04/2023;1,25;5;5;Europe;7,736015933
+STSat-2C;South Korea;Government;Technology Development;LEO;0;298;1482;0,0815427;80,28;102,77;30/01/2013;retired;01/04/2023;10,17;2;93;Asia;2,506628473
+TET-1;Germany;Commercial;Technology Development;LEO;0;501;505;0,000290994;97,5;94,7;22/07/2012;retired;17/10/2023;11,24;1;120;Europe;8,142208791
