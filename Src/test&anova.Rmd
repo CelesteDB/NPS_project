@@ -8,19 +8,17 @@ date: "2023-11-28"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r}
 
 library("openxlsx")
 library(readxl)
 data<-  read_excel("../Dataset/TestSet.xlsx", col_names = TRUE)
-predicted_lifetime = read.table("predicted_lifetime.txt", header = TRUE)
-
+#predicted_lifetime = read.table("predicted_lifetime.txt", header = TRUE)
+predicted_lifetime = read.table("../Dataset/pred2.txt", header = TRUE)
 
 
 
 ```
-
 
 ```{r}
 library(readxl)
@@ -33,16 +31,12 @@ library(broom)
 library(tidyr)
 ```
 
-
 modifico il dataset come in "Cox Model - Assunzioni Verificate.Rmd"
-
-
 
 ```{r}
 i <- which(data$Purpose == 'Navigation' | data$Orbit == 'Elliptical' | data$Continent == 'Africa' | data$Continent == 'Multinational' | data$Continent == 'Oceania' )
 data <- data[-i,]
 ```
-
 
 ```{r}
 table(data$Users, data$Status)
@@ -58,10 +52,7 @@ data$Eccentricity[i] = 1
 data$log.Eccentricity <- -log(data$Eccentricity)
 ```
 
-
-
 riguardo le table a dataset ultimato
-
 
 ```{r}
 table(data$Users, data$Status)
@@ -70,13 +61,9 @@ table(data$Orbit, data$Status)
 table(data$Continent, data$Status)
 table(data$Status)
 ```
-I civili sono solo 2 quindi o li incorporo con qualcun altro
-Space science e technology development sempre pochi==>potrei incorporare space science con earth observation e technology development con communications?
 
+I civili sono solo 2 quindi li incorporo con qualcun altro. Space science e technology development sempre pochi==\>potrei incorporare space science con earth observation e technology development con communications?
 
-
-
-TEST: SIAMO NEL CASO DI PAIRED DATA ==> SIA NOI CHE LE AGENZIE SPAZIALI MISURIAMO LA STESSA QUANTITà: il tempo di vita atteso
 PERMUTATIONAL ONE-WAY ANOVA PRED - EXP-LIFETIME -\> CONTINENT
 
 ```{r}
@@ -120,9 +107,10 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0.000
+p_val #0.038
 ```
-Il continente è un fattore significativo ==>c'è evidenza statistica per permetterci diaffermare che  alcuni continenti mentono in media più di altri
+
+Il continente è un fattore significativo ==\>c'è evidenza statistica per permetterci di affermare che alcuni continenti mentono in media più di altri
 
 PERMUTATIONAL ONE-WAY ANOVA predicted- expected -\> PURPOSE
 
@@ -163,7 +151,7 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0.04
+p_val #0
 
 ```
 
@@ -208,10 +196,9 @@ abline(v=T0,col=3,lwd=4)
 
 # p-value
 p_val <- sum(T_stat>=T0)/B
-p_val #0
+p_val #0.332
 
 ```
-Idem
 
 PERMUTATIONAL TWO-WAYS ANOVA PREDLIFETIME - EXPLIFETIME -\> CONTINENT-PURPOSE
 
@@ -258,33 +245,20 @@ for(perm in 1:B){
   T_cp[perm] <- summary.aov(aov(diff.perm.H0cp ~ users + purpose + users:purpose))[[1]][3,4]
 }
 
-sum(T_cp >= T0_cp)/B #0.004
+sum(T_cp >= T0_cp)/B #0.055
 ```
 
-The interaction between users and purpose is SIGNIFICANT
+The interaction between users and purpose is not significant
 
 ------------------------------------------------------------------------
 
+TEST FOR THE DISTRIBUTION OF THE DIFFERENCE between predicted and expected lifetime
 
-MANN-WHITNEY U TEST
-
-Independence assumption is not verified !!!
-
-H0: X and Y have the same distribution vs H1: P(X\>Y) != 0.5
+SIAMO NEL CASO DI PAIRED DATA ==\> sia noi che le agenzie spaziali misuriamo la stessa quantità: il tempo di vita atteso
 
 ```{r}
-alpha=0.05
-
-p.value <- wilcox.test(explife,y=predlife, paired=F, conf.level = 1-alpha)$p.value
-p.value #1.542991e-07
-```
-
-Now we consider predlife and explife as paired data
-
-```{r}
-
 p.value <- wilcox.test(explife,y=predlife, paired=T, conf.level = 1-alpha)$p.value
-p.value #7.234926e-12
+p.value #0.0004405377
 ```
 
 PERMUTATION TEST
@@ -393,8 +367,6 @@ p_val #0
 
 ------------------------------------------------------------------------
 
-
-
 DDPLOT to compare the 2 populations
 
 ```{r}
@@ -417,10 +389,9 @@ Let's use the two sample paired univariate permutation test
 
 ```{r}
 
-
 t1=explife
 t2=predlife
-diff <- t1-t2
+diff <- t2-t1
 
 test1 <- function(diff, delta.0, B = 1000) {
   
@@ -487,9 +458,6 @@ abline(v = mean(diff), lty=2)
 
 ```
 
-
-
-
 BOOTSTRAP DISTRIBUTION & CONFIDENCE INTERVALS for the mean of the difference
 
 ```{r}
@@ -541,36 +509,212 @@ abline(v = CI.RP)
 
 Bootstrap reverse percentile intervals are very similar to the permutation confidence intervals.
 
+BOOTSTRAP CONFIDENCE INTERVALS FOR THE DIFFERENCE BETWEEN PREDICTED AND EXPECTED CONSIDERING ONLY THE CONTINENTS:
+
+ASIA CI
+
 ```{r}
+library(pbapply)
+library(parallel)
 
-# T-INTERVALS:  errore (?????????????)
+id_Asia=which(data$Continent=="Asia")
+diff1=diff[id_Asia]
 
- 
-#  library(pbapply)
-#  library(parallel)
- 
-T.obs <- mean(diff)
-
-n=as.numeric(n)
+T.obs1 <- mean(diff1)
 
 cl=makeCluster(parallel::detectCores()/2)
-diff_scaled=diff/sqrt(var/n)
-clusterExport(cl=cl,list('diff_scaled'))
-T.boot=pbreplicate(B,  
-                   mean(sample(diff_scaled, replace = T)), # ??????
+clusterExport(cl=cl,list('diff1'))
+
+T.boot1=pbreplicate(B,  
+                   mean(sample(diff1, replace = T)),
                    cl=cl)
 
- 
-right.quantile <- quantile(T.boot, 1 - alpha/2)
-left.quantile  <- quantile(T.boot, alpha/2)
- 
-CI.T <- c(T.obs - (right.quantile)*sqrt(var/n), T.obs - (left.quantile)*sqrt(var/n))
-names(CI.T)=c('lwr','upr')
+plot(ecdf(T.boot1), main='Sample mean of the difference')
+abline(v = T.obs1, lty=2)
+
+var=var(T.boot1)
+bias=mean(T.boot1)-T.obs1
+RMSE=sqrt(var+bias^2)
+
+# REVERSE PERCENTILE INTERVALS
+alpha <- 0.05
+
+right.quantile <- quantile(T.boot1, 1 - alpha/2)
+left.quantile  <- quantile(T.boot1, alpha/2)
+
+
+
+CI.RP1 <- c(T.obs1 - (right.quantile - T.obs1), T.obs1 - (left.quantile - T.obs1))
+names(CI.RP1)=c('lwr','upr')
+
+plot(ecdf(T.boot1), main='Sample mean of the difference for Asia')
+abline(v = T.obs1, lty=2)
+abline(v = CI.RP1)
+```
+
+EUROPE CI
+
+```{r}
+library(pbapply)
+library(parallel)
+
+id_Europe=which(data$Continent=="Europe")
+diff2=diff[id_Europe]
+
+T.obs2 <- mean(diff2)
+
+cl=makeCluster(parallel::detectCores()/2)
+clusterExport(cl=cl,list('diff2'))
+
+T.boot2=pbreplicate(B,  
+                   mean(sample(diff2, replace = T)),
+                   cl=cl)
+
+plot(ecdf(T.boot2), main='Sample mean of the difference')
+abline(v = T.obs2, lty=2)
+
+var=var(T.boot2)
+bias=mean(T.boot2)-T.obs2
+RMSE=sqrt(var+bias^2)
+
+# REVERSE PERCENTILE INTERVALS
+alpha <- 0.05
+
+right.quantile <- quantile(T.boot2, 1 - alpha/2)
+left.quantile  <- quantile(T.boot2, alpha/2)
+
+
+
+CI.RP2 <- c(T.obs2 - (right.quantile - T.obs2), T.obs2 - (left.quantile - T.obs2))
+names(CI.RP2)=c('lwr','upr')
+
+plot(ecdf(T.boot2), main='Sample mean of the difference for Europe')
+abline(v = T.obs2, lty=2)
+abline(v = CI.RP2)
+```
+
+AMERICA CI
+
+```{r}
+library(pbapply)
+library(parallel)
+
+id_America=which(data$Continent=="Americas")
+diff3=diff[id_America]
+
+T.obs3 <- mean(diff3)
+
+cl=makeCluster(parallel::detectCores()/2)
+clusterExport(cl=cl,list('diff3'))
+
+T.boot3=pbreplicate(B,  
+                   mean(sample(diff3, replace = T)),
+                   cl=cl)
+
+plot(ecdf(T.boot3), main='Sample mean of the difference')
+abline(v = T.obs3, lty=2)
+
+var=var(T.boot3)
+bias=mean(T.boot3)-T.obs3
+RMSE=sqrt(var+bias^2)
+
+# REVERSE PERCENTILE INTERVALS
+alpha <- 0.05
+
+right.quantile <- quantile(T.boot3, 1 - alpha/2)
+left.quantile  <- quantile(T.boot3, alpha/2)
+
+
+
+CI.RP3 <- c(T.obs3 - (right.quantile - T.obs3), T.obs3 - (left.quantile - T.obs3))
+names(CI.RP3)=c('lwr','upr')
+
+plot(ecdf(T.boot3), main='Sample mean of the difference for Americas')
+abline(v = T.obs3, lty=2)
+abline(v = CI.RP3)
+```
+
+PLOT ALLINEATI
+
+```{r}
+windows() 
+par(mfrow = c(3, 1))
+
+
+plot(ecdf(T.boot1), main='Sample mean of the difference for Asia')
+abline(v = T.obs1, lty=2)
+abline(v = CI.RP1)
+
+plot(ecdf(T.boot2), main='Sample mean of the difference for Europe')
+abline(v = T.obs2, lty=2)
+abline(v = CI.RP2)
+
+plot(ecdf(T.boot3), main='Sample mean of the difference for Americas')
+abline(v = T.obs3, lty=2)
+abline(v = CI.RP3)
+```
+
+Notiamo che la differenza non è significativa per l'Asia, mentre lo è sia per l'Europa che per l'America.
+
+Visto che il nostro scopo è quello di capire dove è meglio rivolgerci come startup, testiamo se la differenza tra Europa e America è significativa
+
+```{r}
+library(pbapply)
+library(parallel)
+
+diffEA=diff2-diff3 #Europe - America
+
+T.obs <- mean(diffEA)
+
+cl=makeCluster(parallel::detectCores()/2)
+clusterExport(cl=cl,list('diffEA'))
+
+T.boot=pbreplicate(B,  
+                   mean(sample(diffEA, replace = T)),
+                   cl=cl)
 
 plot(ecdf(T.boot), main='Sample mean of the difference')
 abline(v = T.obs, lty=2)
-abline(v = CI.T)
-# CI.T
 
+var=var(T.boot)
+bias=mean(T.boot)-T.obs
+RMSE=sqrt(var+bias^2)
+
+# REVERSE PERCENTILE INTERVALS
+alpha <- 0.05
+
+right.quantile <- quantile(T.boot, 1 - alpha/2)
+left.quantile  <- quantile(T.boot, alpha/2)
+
+
+
+CI.RP <- c(T.obs - (right.quantile - T.obs), T.obs - (left.quantile - T.obs))
+names(CI.RP)=c('lwr','upr')
+
+#plot(ecdf(T.boot), main='Sample mean of the difference of our response between Europe and Americas')
+#abline(v = T.obs, lty=2)
+#abline(v = CI.RP)
+```
+
+```{r}
+windows()
+#par(mfrow = c(3, 1))
+
+y=c(T.obs1, T.obs2, T.obs3)
+x=c("Asia","Europe","Americas")
+df = data.frame(x=x, y =y)
+L=c(-1.543691,-7.7649421, -3.297262 )
+U=c(5.836645, -0.5387716,-1.448506 )
+
+CI_Americas <- c(-3.297262, -2.428359, -1.448506)
+CI_Europe <- c(-7.7649421, -3.935845, -0.5387716)
+CI_Asia <- c(-1.543691, 1.943106, 5.836645)
+
+ggplot(df, aes(x = x, y = y)) +
+    geom_errorbar(aes(ymax = U, ymin = L), width = 0.3) +
+    geom_point(size = 4, col = "darkorange") +
+    coord_flip() +
+    labs(x = "Continents",
+         y = "Disparity in Predicted vs. Expected Lifetime") 
 
 ```
