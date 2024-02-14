@@ -1,16 +1,8 @@
----
-title: "Cox with pca"
-output: html_document
-date: "2023-12-21"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ```{r}
 library(readxl)
 data <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
+
 
 #Dalla letteratura risulta che non ho abbastanza eventi per Navigation, Elliptical, Africa, Multinational, Oceania
 #Simulation work has suggested that at least 10 events need to be observed for each covariate considered, and anything less #will lead to problems.

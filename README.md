@@ -1,13 +1,14 @@
-# SURVIVAL ANALYSIS TO SUPPORT SATELLITES LIFETIME PREDICTION
+# REVOLUTIONIZING SATELLITE LIFETIME PREDICTION: A SURVIVAL ANALYSIS APPROACH FOR AEROSPACE AGENCIES
 
-The data come from UCS Satellite Database, which contains 6718 satellites currently orbiting Earth, and 28 types of data for each satellite.  
+The data come from UCS Satellite Database and Satellite Catalog (SATCAT)
 
 **Goal:**  
-We aim to identify the factors that determine the operational lifetime of a satellite in order to contextualize the economic and environmental impacts of space missions.  
-We plan to compare the expected lifetime of satellites as indicated by their owners withthe lifetime predicted by our analysis.
+Intrducing a new approach that applies Survival Analysis in order to provide a more precise prediction of satellite lifetimes to space agencies.
 
 **Dataset:**  
-The data come from https://www.ucsusa.org/resources/satellite-database
+The data come from:  
+https://www.ucsusa.org/resources/satellite-database
+https://celestrak.org/satcat/search.php
 
 
 

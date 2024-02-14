@@ -25,6 +25,7 @@ Summary:
 ```{r}
 summary(data)
 ```
+
 Conto numero eventi per ogni covariata
 ```{r}
 table(data$Users, data$Status)
@@ -34,9 +35,10 @@ table(data$Continent, data$Status)
 
 
 ```
+
 Dalla letteratura risulta che non ho abbastanza eventi per Navigation, Elliptical, Africa, Multinational, Oceania
 Simulation work has suggested that at least 10 events need to be observed for each covariate considered, and anything less will lead to problems.
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2376927/
+
 
 Rimuoviamo queste classi
 ```{r}
@@ -174,7 +176,6 @@ AIC.cox6 = AIC(cox6)
 
 ## Provo a trasformare Eccentricità
 
-Certainly, in certain scientific and engineering contexts, the logarithm of the eccentricity of an orbit is often used. In celestial mechanics, particularly when dealing with orbits, the eccentricity of an ellipse is a parameter that describes how much the orbit deviates from being a perfect circle.
 
 Trasformo Eccentricità per avere un miglior grafico dei residui
 ```{r}
@@ -377,38 +378,13 @@ reference=c("strata", "sample", "zero"))
 ```
 
 Prediction
-```{r}
-# a mano: Idea imprlementare quello che fa Coxed (Incluso bootstrap) in modo da poter usare strata
-# Qui il link di coxed : https://github.com/jkropko/coxed/blob/master/R/coxed.R
-```
-
 
 ```{r}
-coxed <- coxed::coxed(cox5bis, newdata = test.set, method="npsf", bootstrap = TRUE, B=750)
+coxed <- coxed::coxed(cox5bis, newdata = test.set, method="gam", bootstrap = TRUE, B=750)
 predicted_lifetime <- coxed$exp.dur
 ```
 
-```{r}
-# SE USI npsf
-err <- predicted_lifetime$exp.dur - test.set$`Effective Lifetime`
-id <- which( abs(err) > 21)
-errnostro <- sum((predicted_lifetime$exp.dur[-id] - test.set$`Effective Lifetime`[-id])^2)
-errloro <- sum((test.set$`Expected Lifetime`[-id] - test.set$`Effective Lifetime`[-id])^2)
-errnostro
-errloro
-```
-```
-
-
-```{r}
-# SE USI GAM
-err <- predicted_lifetime$exp.dur - test.set$`Effective Lifetime`
-id <- which( abs(err) > 18)
-errnostro <- sum((predicted_lifetime$exp.dur[-id] - test.set$`Effective Lifetime`[-id])^2)
-errloro <- sum((test.set$`Expected Lifetime`[-id] - test.set$`Effective Lifetime`[-id])^2)
-errnostro
-errloro
-```
+Valutazione del modello
 
 ```{r}
 id <- which(test.set$Status == 'retired')
@@ -416,20 +392,21 @@ diff <- predicted_lifetime$exp.dur[id] - test.set$`Effective Lifetime`[id]
 plot(diff)
 
 ```
+
 ```{r}
 sqrt(sum(diff^2)/length(diff))
 mean(diff)
 median(diff)
 #mean(test.set$`Effective Lifetime`[id])
 ```
+
 ```{r}
-
-
 # Calculate Concordance Index
 c_index <- survConcordance(Surv(test.set$`Effective Lifetime`, predicted_lifetime$exp.dur) ~ predicted_lifetime$exp.dur)
 print(paste("Concordance Index: ", c_index$concordance))
 
 ```
+
 ```{r}
 diff <- predicted_lifetime$exp.dur[id] - test.set$`Expected Lifetime`[id]
 plot(diff)

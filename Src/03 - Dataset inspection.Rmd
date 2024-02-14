@@ -10,6 +10,8 @@ output: html_document
 # per lettura dataset se prendi file da github
 library(readxl)
 data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+i <- which(data$Purpose == 'Navigation' | data$Orbit == 'Elliptical' | data$Continent == 'Africa' | data$Continent == 'Multinational' | data$Continent == 'Oceania' )
+data <- data[-i,]
 ```
 
 Libraries:
@@ -167,12 +169,14 @@ ggsurvplot(fit.Continent, data = data,
 Log-rank test:
 ```{r}
 log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Continent, data=data)
-log_rank_test #p = 4e-06
+log_rank_test
 ```
 
-Hazard ratio: DA RIVEDERE COMBINAZONI
+Hazard ratio: 
 ```{r}
 hazard_ratio <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
+hazard_ratio
+hazard_ratio <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[1]/log_rank_test$exp[1])
 hazard_ratio
 ```
 
@@ -197,19 +201,19 @@ log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Users, data=data)
 log_rank_test # p = <2e-16
 ```
 
-Hazard ratio: DA RIVEDERE
+Hazard ratio:
 ```{r}
-hazard_ratio_com_gov <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
-hazard_ratio_com_gov #0.4574647 -> Commercial is a protective factor wrt Government
+hazard_ratio <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
+hazard_ratio 
 
-hazard_ratio_gov_mil <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[3]/log_rank_test$exp[3])
-hazard_ratio_gov_mil #2.414499 -> Government is a risk factor wrt Military
+hazard_ratio <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[3]/log_rank_test$exp[3])
+hazard_ratio
 
-hazard_ratio_com_mil <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[3]/log_rank_test$exp[3])
-hazard_ratio_com_mil #1.104548 -> Commercial is a risk factor wrt Military
+hazard_ratio<- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[4]/log_rank_test$exp[4])
+hazard_ratio
 ```
 
-Factors ordered by risk: Government, Commercial, Military
+Factors ordered by risk (da più rischioso): Civil, Commercial, Miitary, Government 
 
 
 3) We construct one curve for each Purpose -> Difference is statistically significant
@@ -231,29 +235,19 @@ log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Purpose, data=data)
 log_rank_test # p < 2e-16 
 ```
 
-Hazard ratio: DA RIVEDERE
+Hazard ratio: 
 ```{r}
-hazard_ratio_com_eo <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
-hazard_ratio_com_eo #0.3114461 -> Communications is a protective factor wrt Earth Observation
+hazard_ratio <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
+hazard_ratio 
 
-hazard_ratio_nav_com <- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[1]/log_rank_test$exp[1])
-hazard_ratio_nav_com #0
+hazard_ratio <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[3]/log_rank_test$exp[3])
+hazard_ratio
 
-hazard_ratio_com_sc <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[4]/log_rank_test$exp[4])
-hazard_ratio_com_sc #0.6003101 -> Communications is a protective factor wrt Space Science
-
-hazard_ratio_nav_eo <- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[2]/log_rank_test$exp[2])
-hazard_ratio_nav_eo #0
-
-hazard_ratio_eo_sc <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[4]/log_rank_test$exp[4])
-hazard_ratio_eo_sc #1.927493 -> Earth Observation is a risk factor wrt Space Science
-
-hazard_ratio_nav_sc <- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[4]/log_rank_test$exp[4])
-hazard_ratio_nav_sc #0
+hazard_ratio<- (log_rank_test$obs[3]/log_rank_test$exp[3])/(log_rank_test$obs[4]/log_rank_test$exp[4])
+hazard_ratio
 ```
 
-Factors ordered by risk: Earth Observation, Space Science, Communications
-
+Factors ordered by risk (dal più rischioso): Technology Development, Space Science,  Earth Observation,  Communications  
 
 
 4) We construct one curve for Orbit:
@@ -276,30 +270,16 @@ log_rank_test <- survdiff(Surv(time, Status == 'retired') ~ Orbit, data=data)
 log_rank_test # p < 2e-16
 ```
 
-Hazard ratio: DA RIVEDERE
+Hazard ratio
 ```{r}
-hazard_ratio_ell_geo <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
-hazard_ratio_ell_geo #0.5000046 -> Earth Observation is a risk factor wrt Space Science
+hazard_ratio <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[2]/log_rank_test$exp[2])
+hazard_ratio 
 
-hazard_ratio_ell_leo <- (log_rank_test$obs[1]/log_rank_test$exp[1])/(log_rank_test$obs[3]/log_rank_test$exp[3])
-hazard_ratio_ell_leo #0.8579963 -> Earth Observation is a risk factor wrt Space Science
-
-hazard_ratio_meo_ell <- (log_rank_test$obs[4]/log_rank_test$exp[4])/(log_rank_test$obs[1]/log_rank_test$exp[1])
-hazard_ratio_meo_ell #0
-
-hazard_ratio_geo_leo <- (log_rank_test$obs[2]/log_rank_test$exp[2])/(log_rank_test$obs[3]/log_rank_test$exp[3])
-hazard_ratio_geo_leo #1.715977 -> Earth Observation is a risk factor wrt Space Science
-
-hazard_ratio_geo_meo <- (log_rank_test$obs[4]/log_rank_test$exp[4])/(log_rank_test$obs[2]/log_rank_test$exp[2])
-hazard_ratio_geo_meo #0
-
-hazard_ratio_leo_meo <- (log_rank_test$obs[4]/log_rank_test$exp[4])/(log_rank_test$obs[3]/log_rank_test$exp[3])
-hazard_ratio_leo_meo #0
 ```
 
 
-Factors ordered by risk: Earth Observation, Space Science, Communications
+Factors ordered by risk: LEO, GEO 
 
 
 
-Summary: use Purpose, maybe Users, ignore others
+
