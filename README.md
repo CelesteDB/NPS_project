@@ -1,6 +1,6 @@
 # REVOLUTIONIZING SATELLITE LIFETIME PREDICTION: A SURVIVAL ANALYSIS APPROACH FOR AEROSPACE AGENCIES
 
-The data come from UCS Satellite Database and Satellite Catalog (SATCAT)
+The data come from UCS Satellite Database and Satellite Catalog (SATCAT).
 
 **Goal:**  
 Intrducing a new approach that applies Survival Analysis in order to provide a more precise prediction of satellite lifetimes to space agencies.
