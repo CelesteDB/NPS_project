@@ -21,7 +21,8 @@ Load Data:
 ```{r}
 train.set <- read_excel("../Dataset/TrainingSet.xlsx", col_names = TRUE)
 test.set <- read_excel("../Dataset/TestSet.xlsx", col_names = TRUE)
-data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+# data <- read_excel("../Dataset/JoinDatasets.xlsx", col_names = TRUE)
+data <- rbind(train.set, test.set)
 ```
 
 Clean Data:
@@ -59,6 +60,12 @@ cox <- coxph(Surv(time,status == 'retired') ~ Apogee + log.Eccentricity + Mass +
 summary(cox)
 ```
 
+Consider only American satellites:
+```{r}
+am <- which(data$Continent == "Americas")
+data <- data[am,]
+```
+
 Compute Baseline Hazard:
 ```{r}
 idx <- which(data$Status == "censored")
@@ -94,12 +101,17 @@ for (i in 1:n) { # i in r
 
 Plot of the survival curves:
 ```{r}
-ggplot(surv.data, aes(x = timeS, y = survival, color = factor(strata))) +
+selected <- c(17, 20, 35, 43)
+idx <- which(surv.data$strata %in% selected)
+
+surv.data.prova <- surv.data[idx,]
+ggplot(surv.data.prova, aes(x = timeS, y = survival, color = factor(strata))) +
   geom_line(size = 1) +
-  scale_color_discrete(name = "Strata") +
+  scale_color_discrete(name = "Satellites") +
   labs(x = "Time", y = "Survival Probability", title = "Survival Curves") +
   theme_minimal() +
   theme(panel.grid.major = element_line(colour = "gray", linetype = "dashed"),
+        # legend.position = "none",
         panel.grid.minor = element_blank())
 ```
 
@@ -108,14 +120,14 @@ Compute 10% quantiles for all satellites, i.e. time for which $S(t)<0.1$:
 quantiles <- numeric(n)
 
 for(i in 1:n){
-  (idx <- which(surv.data$strata == i))
+  idx <- which(surv.data$strata == i)
   data_temp <- surv.data[idx,]
   
   # Indice primo istante di tempo in cui la probabilità scende sotto il 10%
-  (it <- which(data_temp$survival < 0.1)[1])
+  it <- which(data_temp$survival < 0.1)[1]
 
   # Tempo in cui la probabilità scende sotto 0.1
-  (quantiles[i] <- data_temp$timeS[it])
+  quantiles[i] <- data_temp$timeS[it]
 }
 
 hist(quantiles)
@@ -124,20 +136,23 @@ quantiles[order(quantiles)]
 
 
 
+ 
 ```{r}
 # Converti i tempi in anni in numeri interi
 anni_interi <- as.numeric(quantiles)
 
-# Calcola le date a partire da oggi
-date_futuro <- as.Date("2023-11-17") + anni_interi * 365 
-date_futuro <- na.omit(date_futuro)
+launch_date <- data$`Launch Date`
+
+# Calcola le date 
+date_futuro_dirty <- as.Date(launch_date) + anni_interi * 365 
+date_futuro <- na.omit(date_futuro_dirty)
 
 # Estrai gli anni e i mesi dalle date future
 anni_data <- year(date_futuro)
 mesi_data <- factor(month(date_futuro), labels = month.abb, ordered = FALSE)
 
 # Creazione del dataframe con tutte le combinazioni di mese e anno
-anni <- seq(as.Date("2023-11-17"), by = "year", length.out = 35)
+anni <- seq(min(as.Date("2023-11-17")), by = "year", length.out = 22) #
 anni <- year(anni)
 mesi <- factor(month.abb, levels = month.abb)  # Converti i mesi in un fattore ordinato
 combinazioni_mese_anno <- expand.grid(Mese = mesi, Anno = anni)
@@ -157,12 +172,36 @@ dati_completi <- left_join(combinazioni_mese_anno, conteggio_osservazioni, by = 
 # Riempire eventuali valori mancanti con 0
 dati_completi$Count[is.na(dati_completi$Count)] <- 0
 
-# Plot bidimensionale con il conteggio delle osservazioni
+# x11()
+# Plot bidimensionale con il conteggio delle osservazioni senza 0
 ggplot(dati_completi, aes(x = Mese, y = Anno, fill = Count)) +
   geom_tile(color = "black") +
-  geom_text(aes(label = Count), color = "black") +
+  geom_text(aes(label = ifelse(Count == 0, NA, Count)), color = "black", size = 3) + # Aumenta la dimensione del testo
   scale_fill_gradient(low = "white", high = "blue", guide = "legend") +
-  labs(x = "Mese", y = "Anno", title = "Conteggio delle osservazioni per mese e anno") +
+  labs(x = "Month", y = "Year") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(breaks = unique(dati_completi$Anno)[seq(1, length(unique(dati_completi$Anno)), by = 2)])
+guides(fill = guide_colorbar())
 ```
+
+```{r}
+#satelliti NA
+sum(is.na(date_futuro_dirty))
+#satelliti la cui data di manutenzione è troppo breve
+length(which(date_futuro < as.Date("2023-11-17")))
+#resto
+dim(data)[1] - length(which(date_futuro < as.Date("2023-11-17"))) - sum(is.na(date_futuro_dirty))
+```
+
+Dates for selected satellites:
+```{r}
+Maintenance.Time <- quantiles[selected]
+# (data_futuro_selcted <- as.Date("2023-11-17") + quantiles[selected]*365)
+(launch_date <- data$`Launch Date`[selected])
+(Maintenance.Date <-  as.Date(launch_date) + quantiles[selected]*365)
+
+variables <- c(1,8,19,17,3,4,5)
+cbind(data[selected, variables],Maintenance.Time,Maintenance.Date)
+```
+
