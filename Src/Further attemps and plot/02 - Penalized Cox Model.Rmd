@@ -98,10 +98,6 @@ dummy_training_set <- dummy_training_set[,c(1:2,6:17,19:33)]
 ```
 
 ### PENALIZED COX MODEL 
-Alucni link utili: 
--https://stats.stackexchange.com/questions/416183/cox-regression-with-lasso-regression/416279#416279
--https://glmnet.stanford.edu/articles/Coxnet.html#basic-usage-for-right-censored-training_set
--https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7962780/#sup1
 
 Usiamo pacchetto glmnet
 
@@ -160,7 +156,6 @@ coef <- coef(fitAtLmin)
 ```
 
 
-The predictors selected by the elastic net-penalized model were then included in an unpenalized cox proportional hazards regression model to establish a baseline for comparison during model approximation. The baseline model was then reduced by backward elimination (see Supplementary Material for a full account). GUARDA https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7962780/#sup1
 
 
 ```{r}
@@ -315,8 +310,7 @@ summary(cox7)
 We lose significance for all variables
 
 
-### COX PENALIZED MODEL + DISCRETE VARIABLES ( vedi file cox model + discrete var)
-Agiamo nello stesso modo di prima ma discretizziamo le variabili --> DA FARE
+### COX PENALIZED MODEL + DISCRETE VARIABLES 
 
 Discretiziamo la massa
 

@@ -30,7 +30,6 @@ table(data$Continent, data$Status)
 ```
 Dalla letteratura risulta che non ho abbastanza eventi per Navigation, Elliptical, Africa, Multinational, Oceania
 Simulation work has suggested that at least 10 events need to be observed for each covariate considered, and anything less will lead to problems.
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2376927/
 
 Rimuoviamo queste classi
 ```{r}
@@ -98,8 +97,7 @@ names(CI.RP.perigee)=c('lwr','pointwise','upr')
 CI.RP.perigee
 
 ```
-The coef is not significant at 5% ( zero incluso) ( vedi tde 10/02/2023)
-
+The coef is not significant at 5% ( zero incluso) 
 Rimuovo Perigee
 ```{r}
 time <- data$`Effective Lifetime`

@@ -56,16 +56,17 @@ Paesi <- data$Continent[-id]
 
 df <- data.frame(x1,y1,Paesi)
 
-# Crea lo scatterplot
+# Crea lo scatterplot con la bisettrice
 ggplot(df, aes(x = x1, y = y1, color = Paesi)) +
   geom_point(size = 3) +
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "gray") +
-  #scale_colour_viridis_d()+
-  theme_minimal()+
+  geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dashed") + # Aggiunta della bisettrice
+  scale_color_manual(values = c("blue", "skyblue", "grey")) +  # Impostazione dei colori blu, azzurro e grigio
+  theme_minimal() +
   labs(title = "Effective lifetime vs Expected lifetime for Continent",
        x = "Effective lifetime",
        y = "Expected lifetime",
-       color = "Continent") 
+       color = "Continent")
+
 
 
 ############ Expected Life vs Effective life for Users
